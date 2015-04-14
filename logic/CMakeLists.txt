@@ -18,8 +18,6 @@ set(LOGIC_SOURCES
 	MMCStrings.cpp
 	BaseConfigObject.h
 	BaseConfigObject.cpp
-	AbstractCommonModel.h
-	AbstractCommonModel.cpp
 	TypeMagic.h
 
 	# Prefix tree where node names are strings between separators
@@ -82,21 +80,44 @@ set(LOGIC_SOURCES
 	net/URLConstants.h
 	net/URLConstants.cpp
 
-	# Yggdrasil login stuff
-	auth/AuthSession.h
-	auth/AuthSession.cpp
-	auth/MojangAccountList.h
-	auth/MojangAccountList.cpp
-	auth/MojangAccount.h
-	auth/MojangAccount.cpp
-	auth/YggdrasilTask.h
-	auth/YggdrasilTask.cpp
-	auth/flows/AuthenticateTask.h
-	auth/flows/AuthenticateTask.cpp
-	auth/flows/RefreshTask.cpp
-	auth/flows/RefreshTask.cpp
-	auth/flows/ValidateTask.h
-	auth/flows/ValidateTask.cpp
+	# Accounts stuff
+	auth/AccountFileFormat.h
+	auth/AccountModel.h
+	auth/AccountModel.cpp
+	auth/AccountTypesModel.h
+	auth/AccountTypesModel.cpp
+	auth/AccountStore.h
+	auth/AccountStore.cpp
+	auth/BaseAccount.h
+	auth/BaseAccount.cpp
+	auth/BaseProfile.h
+	auth/BaseProfile.cpp
+	auth/BaseSession.h
+	auth/BaseSession.cpp
+	auth/BaseAccountType.h
+	auth/BaseAccountType.cpp
+
+	# Imgur accounts
+	screenshots/auth/ImgurAccount.h
+	screenshots/auth/ImgurAccount.cpp
+	screenshots/auth/ImgurAuthTask.h
+	screenshots/auth/ImgurAuthTask.cpp
+
+	# Mojang (yggdrasil) accounts
+	minecraft/auth/MojangAuthSession.h
+	minecraft/auth/MojangAuthSession.cpp
+	minecraft/auth/MojangAccount.h
+	minecraft/auth/MojangAccount.cpp
+	minecraft/auth/MojangSessionUtils.h
+	minecraft/auth/MojangSessionUtils.cpp
+	minecraft/auth/tasks/YggdrasilTask.h
+	minecraft/auth/tasks/YggdrasilTask.cpp
+	minecraft/auth/tasks/AuthenticateTask.h
+	minecraft/auth/tasks/AuthenticateTask.cpp
+	minecraft/auth/tasks/RefreshTask.cpp
+	minecraft/auth/tasks/RefreshTask.cpp
+	minecraft/auth/tasks/ValidateTask.h
+	minecraft/auth/tasks/ValidateTask.cpp
 
 	# Game launch logic
 	launch/steps/CheckJava.cpp
@@ -335,4 +356,4 @@ target_link_libraries(MultiMC_logic xz-embedded unpack200 iconfix libUtil Logica
 
 add_dependencies(MultiMC_logic QuaZIP)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(MultiMC_logic PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})

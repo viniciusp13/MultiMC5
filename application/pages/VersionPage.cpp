@@ -41,8 +41,9 @@
 #include "forge/ForgeInstaller.h"
 #include "liteloader/LiteLoaderVersionList.h"
 #include "liteloader/LiteLoaderInstaller.h"
-#include "auth/MojangAccountList.h"
+#include <auth/AccountStore.h>
 #include "minecraft/Mod.h"
+#include "minecraft/auth/MojangAccount.h"
 #include <minecraft/MinecraftVersion.h>
 #include <minecraft/MinecraftVersionList.h>
 #include "icons/IconList.h"
@@ -238,7 +239,7 @@ void VersionPage::on_changeVersionBtn_clicked()
 	if (!vselect.exec() || !vselect.selectedVersion())
 		return;
 
-	if (!MMC->accounts()->anyAccountIsValid())
+	if (!MMC->accountsStore()->hasAny("mojang"))
 	{
 		CustomMessageBox::selectable(
 			this, tr("Error"),

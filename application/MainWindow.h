@@ -20,7 +20,7 @@
 #include <QTimer>
 
 #include "BaseInstance.h"
-#include "auth/MojangAccount.h"
+#include "minecraft/auth/MojangAuthSession.h"
 #include "net/NetJob.h"
 #include "updater/GoUpdate.h"
 
@@ -127,11 +127,9 @@ slots:
 
 	void updateToolsMenu();
 
-    void skinJobFinished();
 public
 slots:
 	void instanceActivated(QModelIndex);
-
 	void instanceChanged(const QModelIndex &current, const QModelIndex &previous);
 
 	void instanceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
@@ -141,16 +139,13 @@ slots:
 	void startTask(Task *task);
 
 	void updateAvailable(GoUpdate::Status status);
-
 	void updateNotAvailable();
 
 	void notificationsChanged();
 
-	void activeAccountChanged();
-
-	void changeActiveAccount();
-
-	void repopulateAccountsMenu();
+	// void latestAccountChanged();
+	void makeAccountGlobalDefault();
+	void repopulateProfilesMenu();
 
 	void updateNewsLabel();
 

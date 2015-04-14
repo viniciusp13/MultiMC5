@@ -23,25 +23,25 @@ public:
 };
 
 /// @throw FileSystemException
-void write(const QJsonDocument &doc, const QString &filename);
+MULTIMC_LOGIC_EXPORT void write(const QJsonDocument &doc, const QString &filename);
 /// @throw FileSystemException
-void write(const QJsonObject &object, const QString &filename);
+MULTIMC_LOGIC_EXPORT void write(const QJsonObject &object, const QString &filename);
 /// @throw FileSystemException
-void write(const QJsonArray &array, const QString &filename);
+MULTIMC_LOGIC_EXPORT void write(const QJsonArray &array, const QString &filename);
 
-QByteArray toBinary(const QJsonObject &obj);
-QByteArray toBinary(const QJsonArray &array);
-QByteArray toText(const QJsonObject &obj);
-QByteArray toText(const QJsonArray &array);
+MULTIMC_LOGIC_EXPORT QByteArray toBinary(const QJsonObject &obj);
+MULTIMC_LOGIC_EXPORT QByteArray toBinary(const QJsonArray &array);
+MULTIMC_LOGIC_EXPORT QByteArray toText(const QJsonObject &obj);
+MULTIMC_LOGIC_EXPORT QByteArray toText(const QJsonArray &array);
 
 /// @throw JsonException
-QJsonDocument requireDocument(const QByteArray &data, const QString &what = "Document");
+MULTIMC_LOGIC_EXPORT QJsonDocument requireDocument(const QByteArray &data, const QString &what = "Document");
 /// @throw JsonException
-QJsonDocument requireDocument(const QString &filename, const QString &what = "Document");
+MULTIMC_LOGIC_EXPORT QJsonDocument requireDocument(const QString &filename, const QString &what = "Document");
 /// @throw JsonException
-QJsonObject requireObject(const QJsonDocument &doc, const QString &what = "Document");
+MULTIMC_LOGIC_EXPORT QJsonObject requireObject(const QJsonDocument &doc, const QString &what = "Document");
 /// @throw JsonException
-QJsonArray requireArray(const QJsonDocument &doc, const QString &what = "Document");
+MULTIMC_LOGIC_EXPORT QJsonArray requireArray(const QJsonDocument &doc, const QString &what = "Document");
 
 /////////////////// WRITING ////////////////////
 
@@ -111,36 +111,36 @@ template <typename T>
 T requireIsType(const QJsonValue &value, const QString &what = "Value");
 
 /// @throw JsonException
-template<> double requireIsType<double>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT double requireIsType<double>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> bool requireIsType<bool>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT bool requireIsType<bool>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> int requireIsType<int>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT int requireIsType<int>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QJsonObject requireIsType<QJsonObject>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QJsonObject requireIsType<QJsonObject>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QJsonArray requireIsType<QJsonArray>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QJsonArray requireIsType<QJsonArray>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QJsonValue requireIsType<QJsonValue>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QJsonValue requireIsType<QJsonValue>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QByteArray requireIsType<QByteArray>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QByteArray requireIsType<QByteArray>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QDateTime requireIsType<QDateTime>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QDateTime requireIsType<QDateTime>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QVariant requireIsType<QVariant>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QVariant requireIsType<QVariant>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QString requireIsType<QString>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QString requireIsType<QString>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QUuid requireIsType<QUuid>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QUuid requireIsType<QUuid>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QDir requireIsType<QDir>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QDir requireIsType<QDir>(const QJsonValue &value, const QString &what);
 /// @throw JsonException
-template<> QUrl requireIsType<QUrl>(const QJsonValue &value, const QString &what);
+template<> MULTIMC_LOGIC_EXPORT QUrl requireIsType<QUrl>(const QJsonValue &value, const QString &what);
 
 // the following functions are higher level functions, that make use of the above functions for
 // type conversion
 template <typename T>
-T ensureIsType(const QJsonValue &value, const T default_, const QString &what = "Value")
+T MULTIMC_LOGIC_EXPORT ensureIsType(const QJsonValue &value, const T default_, const QString &what = "Value")
 {
 	if (value.isUndefined())
 	{
@@ -158,7 +158,7 @@ T ensureIsType(const QJsonValue &value, const T default_, const QString &what = 
 
 /// @throw JsonException
 template <typename T>
-T requireIsType(const QJsonObject &parent, const QString &key, const QString &what = "__placeholder__")
+T MULTIMC_LOGIC_EXPORT requireIsType(const QJsonObject &parent, const QString &key, const QString &what = "__placeholder__")
 {
 	const QString localWhat = QString(what).replace("__placeholder__", '\'' + key + '\'');
 	if (!parent.contains(key))
@@ -180,25 +180,13 @@ T ensureIsType(const QJsonObject &parent, const QString &key, const T default_, 
 }
 
 template <typename T>
-QList<T> requireIsArrayOf(const QJsonDocument &doc)
-{
-	const QJsonArray array = requireArray(doc);
-	QList<T> out;
-	for (const QJsonValue val : array)
-	{
-		out.append(requireIsType<T>(val, "Document"));
-	}
-	return out;
-}
-
-template <typename T>
-QList<T> ensureIsArrayOf(const QJsonValue &value, const QString &what = "Value")
+QList<T> requireIsArrayOf(const QJsonValue &value, const QString &what = "Value")
 {
 	const QJsonArray array = requireIsType<QJsonArray>(value, what);
 	QList<T> out;
 	for (const QJsonValue val : array)
 	{
-		out.append(ensureIsType<T>(val, what));
+		out.append(requireIsType<T>(val, what));
 	}
 	return out;
 }
@@ -210,7 +198,14 @@ QList<T> ensureIsArrayOf(const QJsonValue &value, const QList<T> default_, const
 	{
 		return default_;
 	}
-	return ensureIsArrayOf<T>(value, what);
+	try
+	{
+		return requireIsArrayOf<T>(value, what);
+	}
+	catch (JsonException &)
+	{
+		return default_;
+	}
 }
 
 /// @throw JsonException
@@ -243,7 +238,7 @@ QList<T> ensureIsArrayOf(const QJsonObject &parent, const QString &key,
 	{ \
 		return requireIsType<TYPE>(value, what); \
 	} \
-	inline TYPE ensure##NAME(const QJsonValue &value, const TYPE default_, const QString &what = "Value") \
+	inline TYPE ensure##NAME(const QJsonValue &value, const TYPE default_ = TYPE(), const QString &what = "Value") \
 	{ \
 		return ensureIsType<TYPE>(value, default_, what); \
 	} \
@@ -251,7 +246,7 @@ QList<T> ensureIsArrayOf(const QJsonObject &parent, const QString &key,
 	{ \
 		return requireIsType<TYPE>(parent, key, what); \
 	} \
-	inline TYPE ensure##NAME(const QJsonObject &parent, const QString &key, const TYPE default_, const QString &what = "__placeholder") \
+	inline TYPE ensure##NAME(const QJsonObject &parent, const QString &key, const TYPE default_ = TYPE(), const QString &what = "__placeholder") \
 	{ \
 		return ensureIsType<TYPE>(parent, key, default_, what); \
 	}
@@ -273,4 +268,5 @@ JSON_HELPERFUNCTIONS(Variant, QVariant)
 #undef JSON_HELPERFUNCTIONS
 
 }
+
 using JSONValidationError = Json::JsonException;

@@ -1,10 +1,8 @@
 #include "LaunchInteraction.h"
-#include <auth/MojangAccountList.h>
 #include "MultiMC.h"
 #include "dialogs/CustomMessageBox.h"
-#include "dialogs/AccountSelectDialog.h"
 #include "dialogs/ProgressDialog.h"
-#include "dialogs/EditAccountDialog.h"
+#include "dialogs/AccountsDialog.h"
 #include "ConsoleWindow.h"
 #include "BuildConfig.h"
 #include "JavaCommon.h"
@@ -12,9 +10,10 @@
 #include <QLineEdit>
 #include <QInputDialog>
 #include <tasks/Task.h>
-#include <auth/YggdrasilTask.h>
 #include <launch/steps/TextPrint.h>
-#include <QStringList>
+#include <minecraft/auth/MojangAuthSession.h>
+#include <minecraft/auth/MojangAccount.h>
+#include <auth/AccountStore.h>
 
 LaunchController::LaunchController(QObject *parent) : QObject(parent)
 {
@@ -34,6 +33,19 @@ void LaunchController::login()
 	JavaCommon::checkJVMArgs(m_instance->settings()->get("JvmArgs").toString(), m_parentWidget);
 
 	// Find an account to use.
+	auto session = std::make_shared<MojangAuthSession>();
+	session->wants_online = m_online;
+	m_session = session;
+	AccountsDialog dlg(MMC->accountsStore()->type("mojang"), m_instance, m_parentWidget);
+	dlg.setSession(m_session);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	launchInstance();
+	/*
+	if(session->)
+
 	std::shared_ptr<MojangAccountList> accounts = MMC->accounts();
 	MojangAccountPtr account = accounts->activeAccount();
 	if (accounts->count() <= 0)
@@ -172,6 +184,7 @@ void LaunchController::login()
 		}
 		}
 	}
+	*/
 }
 
 void LaunchController::launchInstance()

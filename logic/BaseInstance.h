@@ -24,7 +24,6 @@
 
 #include "settings/INIFile.h"
 #include "BaseVersionList.h"
-#include "auth/MojangAccount.h"
 #include "launch/MessageLevel.h"
 #include "pathmatcher/IPathMatcher.h"
 
@@ -34,6 +33,7 @@ class QDir;
 class Task;
 class LaunchTask;
 class BaseInstance;
+using SessionPtr = std::shared_ptr<class BaseSession>;
 
 // pointer for lazy people
 typedef std::shared_ptr<BaseInstance> InstancePtr;
@@ -68,6 +68,9 @@ public:
 	/// The instance's ID. The ID SHALL be determined by MMC internally. The ID IS guaranteed to
 	/// be unique.
 	virtual QString id() const;
+
+	/// the account type this instance uses
+	virtual QString accountType() const = 0;
 
 	void setRunning(bool running);
 	bool isRunning() const;
@@ -155,7 +158,7 @@ public:
 	virtual std::shared_ptr<Task> createUpdateTask() = 0;
 
 	/// returns a valid launcher (task container)
-	virtual std::shared_ptr<LaunchTask> createLaunchTask(AuthSessionPtr account) = 0;
+	virtual std::shared_ptr<LaunchTask> createLaunchTask(SessionPtr account) = 0;
 
 	/*!
 	 * Returns a task that should be done right before launch
@@ -167,6 +170,7 @@ public:
 	 * Create envrironment variables for running the instance
 	 */
 	virtual QProcessEnvironment createEnvironment() = 0;
+	/// returns a valid process, ready for launch with the given account.
 
 	/*!
 	 * Returns a matcher that can maps relative paths within the instance to whether they are 'log files'

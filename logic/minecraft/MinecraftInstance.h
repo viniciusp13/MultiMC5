@@ -8,11 +8,18 @@
 class ModList;
 class WorldList;
 
+using MojangAuthSessionPtr = std::shared_ptr<class MojangAuthSession>;
+
 class MULTIMC_LOGIC_EXPORT MinecraftInstance: public BaseInstance
 {
 public:
 	MinecraftInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir);
 	virtual ~MinecraftInstance() {};
+
+	virtual QString accountType() const override
+	{
+		return "mojang";
+	}
 
 	/// Path to the instance's minecraft directory.
 	QString minecraftRoot() const;
@@ -58,7 +65,7 @@ public:
 	virtual QString getStatusbarDescription() override;
 
 protected:
-	QMap<QString, QString> createCensorFilterFromSession(AuthSessionPtr session);
+	QMap<QString, QString> createCensorFilterFromSession(MojangAuthSessionPtr session);
 private:
 	QString prettifyTimeDuration(int64_t duration);
 };

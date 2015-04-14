@@ -35,6 +35,7 @@
 #include "minecraft/ModList.h"
 #include "minecraft/WorldList.h"
 #include <MMCZip.h>
+#include "minecraft/auth/MojangAuthSession.h"
 
 LegacyInstance::LegacyInstance(SettingsObjectPtr globalSettings, SettingsObjectPtr settings, const QString &rootDir)
 	: MinecraftInstance(globalSettings, settings, rootDir)
@@ -104,8 +105,10 @@ std::shared_ptr<Task> LegacyInstance::createUpdateTask()
 	return std::shared_ptr<Task>(new LegacyUpdate(this, this));
 }
 
-std::shared_ptr<LaunchTask> LegacyInstance::createLaunchTask(AuthSessionPtr session)
+std::shared_ptr<LaunchTask> LegacyInstance::createLaunchTask(SessionPtr session)
 {
+	MojangAuthSessionPtr mojangSession = std::dynamic_pointer_cast<MojangAuthSession>(session);
+
 	QString launchScript;
 	QIcon icon = ENV.icons()->getIcon(iconKey());
 	auto pixmap = icon.pixmap(128, 128);
@@ -124,8 +127,8 @@ std::shared_ptr<LaunchTask> LegacyInstance::createLaunchTask(AuthSessionPtr sess
 
 		QString lwjgl = QDir(m_lwjglFolderSetting->get().toString() + "/" + lwjglVersion())
 							.absolutePath();
-		launchScript += "userName " + session->player_name + "\n";
-		launchScript += "sessionId " + session->session + "\n";
+		launchScript += "userName " + mojangSession->player_name + "\n";
+		launchScript += "sessionId " + mojangSession->session + "\n";
 		launchScript += "windowTitle " + windowTitle() + "\n";
 		launchScript += "windowParams " + windowParams + "\n";
 		launchScript += "lwjgl " + lwjgl + "\n";
@@ -150,7 +153,7 @@ std::shared_ptr<LaunchTask> LegacyInstance::createLaunchTask(AuthSessionPtr sess
 		process->appendStep(step);
 	}
 	// if we aren't in offline mode,.
-	if(session->status != AuthSession::PlayableOffline)
+	if(mojangSession->status != MojangAuthSession::PlayableOffline)
 	{
 		process->appendStep(std::make_shared<Update>(pptr));
 	}
@@ -174,9 +177,9 @@ std::shared_ptr<LaunchTask> LegacyInstance::createLaunchTask(AuthSessionPtr sess
 		step->setWorkingDirectory(minecraftRoot());
 		process->appendStep(step);
 	}
-	if (session)
+	if (mojangSession)
 	{
-		process->setCensorFilter(createCensorFilterFromSession(session));
+		process->setCensorFilter(createCensorFilterFromSession(mojangSession));
 	}
 	return process;
 }

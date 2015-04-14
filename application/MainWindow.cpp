@@ -342,11 +342,10 @@ namespace Ui {
 #include "dialogs/CustomMessageBox.h"
 #include "dialogs/IconPickerDialog.h"
 #include "dialogs/CopyInstanceDialog.h"
-#include "dialogs/AccountSelectDialog.h"
 #include "dialogs/UpdateDialog.h"
-#include "dialogs/EditAccountDialog.h"
 #include "dialogs/NotificationDialog.h"
 #include "dialogs/ExportInstanceDialog.h"
+#include "dialogs/AccountsDialog.h"
 
 #include "InstanceList.h"
 #include "minecraft/MinecraftVersionList.h"
@@ -354,8 +353,8 @@ namespace Ui {
 #include "icons/IconList.h"
 #include "java/JavaVersionList.h"
 
-#include "auth/flows/AuthenticateTask.h"
-#include "auth/flows/RefreshTask.h"
+#include "auth/AccountModel.h"
+#include <auth/BaseProfile.h>
 
 #include "updater/DownloadTask.h"
 
@@ -438,17 +437,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 		view = new GroupView(ui->centralWidget);
 
 		view->setSelectionMode(QAbstractItemView::SingleSelection);
-		// view->setCategoryDrawer(drawer);
-		// view->setCollapsibleBlocks(true);
-		// view->setViewMode(QListView::IconMode);
-		// view->setFlow(QListView::LeftToRight);
-		// view->setWordWrap(true);
-		// view->setMouseTracking(true);
-		// view->viewport()->setAttribute(Qt::WA_Hover);
 		auto delegate = new ListViewDelegate();
 		view->setItemDelegate(delegate);
-		// view->setSpacing(10);
-		// view->setUniformItemWidths(true);
 
 		// do not show ugly blue border on the mac
 		view->setAttribute(Qt::WA_MacShowFocusRect, false);
@@ -456,12 +446,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 		view->installEventFilter(this);
 
 		proxymodel = new InstanceProxyModel(this);
-		//		proxymodel->setSortRole(KCategorizedSortFilterProxyModel::CategorySortRole);
-		// proxymodel->setFilterRole(KCategorizedSortFilterProxyModel::CategorySortRole);
-		// proxymodel->setDynamicSortFilter ( true );
-
-		// FIXME: instList should be global-ish, or at least not tied to the main window...
-		// maybe the application itself?
 		proxymodel->setSourceModel(MMC->instances().get());
 		proxymodel->sort(0);
 		view->setFrameShape(QFrame::NoFrame);
@@ -475,6 +459,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 		ui->horizontalLayout->addWidget(view);
 	}
+
 	// The cat background
 	{
 		bool cat_enable = MMC->settings()->get("TheCat").toBool();
@@ -513,7 +498,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	connect(manageAccountsAction, SIGNAL(triggered(bool)), this,
 			SLOT(on_actionManageAccounts_triggered()));
 
-	repopulateAccountsMenu();
+	repopulateProfilesMenu();
 
 	accountMenuButton = new QToolButton(this);
 	accountMenuButton->setText(tr("Profiles"));
@@ -530,44 +515,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	// Update the menu when the active account changes.
 	// Shouldn't have to use lambdas here like this, but if I don't, the compiler throws a fit.
 	// Template hell sucks...
-	connect(MMC->accounts().get(), &MojangAccountList::activeAccountChanged, [this]
-	{ activeAccountChanged(); });
-	connect(MMC->accounts().get(), &MojangAccountList::listChanged, [this]
-	{ repopulateAccountsMenu(); });
+	// connect(MMC->accountsStore().get(), &AccountStore::listChanged, this, &MainWindow::repopulateProfilesMenu);
 
 	// Show initial account
-	activeAccountChanged();
-
-	auto accounts = MMC->accounts();
-
-	QList<CacheDownloadPtr> skin_dls;
-	for (int i = 0; i < accounts->count(); i++)
-	{
-		auto account = accounts->at(i);
-		if (account != nullptr)
-		{
-			for (auto profile : account->profiles())
-			{
-				auto meta = Env::getInstance().metacache()->resolveEntry("skins", profile.name + ".png");
-				auto action = CacheDownload::make(
-					QUrl("http://" + URLConstants::SKINS_BASE + profile.name + ".png"), meta);
-				skin_dls.append(action);
-				meta->stale = true;
-			}
-		}
-	}
-	if (!skin_dls.isEmpty())
-	{
-		auto job = new NetJob("Startup player skins download");
-		connect(job, &NetJob::succeeded, this, &MainWindow::skinJobFinished);
-		connect(job, &NetJob::failed, this, &MainWindow::skinJobFinished);
-		for (auto action : skin_dls)
-		{
-			job->addNetAction(action);
-		}
-		skin_download_job.reset(job);
-		job->start();
-	}
+	// latestAccountChanged();
 
 	// run the things that load and download other things... FIXME: this is NOT the place
 	// FIXME: invisible actions in the background = NOPE.
@@ -619,12 +570,6 @@ MainWindow::~MainWindow()
 {
 	delete ui;
 	delete proxymodel;
-}
-
-void MainWindow::skinJobFinished()
-{
-	activeAccountChanged();
-	skin_download_job.reset();
 }
 
 void MainWindow::showInstanceContextMenu(const QPoint &pos)
@@ -732,70 +677,47 @@ void MainWindow::updateToolsMenu()
 	ui->actionLaunchInstance->setMenu(launchMenu);
 }
 
-void MainWindow::repopulateAccountsMenu()
+void MainWindow::repopulateProfilesMenu()
 {
+	//FIXME: bad.
+	static QString currentAccountType;
 	accountMenu->clear();
 
-	std::shared_ptr<MojangAccountList> accounts = MMC->accounts();
-	MojangAccountPtr active_account = accounts->activeAccount();
+	auto store = MMC->accountsStore();
 
-	QString active_username = "";
-	if (active_account != nullptr)
+	if(m_selectedInstance)
 	{
-		active_username = accounts->activeAccount()->username();
+		currentAccountType = m_selectedInstance->accountType();
 	}
 
-	if (accounts->count() <= 0)
+	auto accounts = store->accountsForType(currentAccountType);
+
+	if (accounts.size() == 0)
 	{
-		QAction *action = new QAction(tr("No accounts added!"), this);
+		QAction *action = new QAction(tr("No %1 accounts added!").arg(currentAccountType), this);
 		action->setEnabled(false);
 		accountMenu->addAction(action);
 	}
 	else
 	{
-		// TODO: Nicer way to iterate?
-		for (int i = 0; i < accounts->count(); i++)
+		for (auto account: accounts)
 		{
-			MojangAccountPtr account = accounts->at(i);
-
-			// Styling hack
-			/*
-			QAction *section = new QAction(account->username(), this);
-			section->setEnabled(false);
-			accountMenu->addAction(section);
-			*/
-
-			for (auto profile : account->profiles())
+			for(int i = 0; i < account->size(); i++)
 			{
-				QAction *action = new QAction(profile.name, this);
-				action->setData(account->username());
+				auto profile = account->operator[](i);
+				QAction *action = new QAction(profile->nickname(), this);
+				action->setData(qVariantFromValue(profile));
 				action->setCheckable(true);
-				if (active_username == account->username())
+				if (account->isDefault())
 				{
 					action->setChecked(true);
 				}
-
-				action->setIcon(SkinUtils::getFaceFromCache(profile.name));
+				Resource::create(profile->avatar(), Resource::create("icon:hourglass"))->applyTo(action);
 				accountMenu->addAction(action);
-				connect(action, SIGNAL(triggered(bool)), SLOT(changeActiveAccount()));
+				connect(action, &QAction::triggered, this, &MainWindow::makeAccountGlobalDefault);
 			}
 		}
 	}
-
-	accountMenu->addSeparator();
-
-	QAction *action = new QAction(tr("No Default Account"), this);
-	action->setCheckable(true);
-	action->setIcon(MMC->getThemedIcon("noaccount"));
-	action->setData("");
-	if (active_username.isEmpty())
-	{
-		action->setChecked(true);
-	}
-
-	accountMenu->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), SLOT(changeActiveAccount()));
-
 	accountMenu->addSeparator();
 	accountMenu->addAction(manageAccountsAction);
 }
@@ -803,47 +725,32 @@ void MainWindow::repopulateAccountsMenu()
 /*
  * Assumes the sender is a QAction
  */
-void MainWindow::changeActiveAccount()
+void MainWindow::makeAccountGlobalDefault()
 {
-	QAction *sAction = (QAction *)sender();
-	// Profile's associated Mojang username
-	// Will need to change when profiles are properly implemented
-	if (sAction->data().type() != QVariant::Type::String)
-		return;
-
-	QVariant data = sAction->data();
-	QString id = "";
-	if (!data.isNull())
-	{
-		id = data.toString();
-	}
-
-	MMC->accounts()->setActiveAccount(id);
-
-	activeAccountChanged();
+	QAction *action = qobject_cast<QAction *>(sender());
+	auto prof = action->data().value<BaseProfile *>();
+	if(prof)
+		prof->setDefault();
 }
 
-void MainWindow::activeAccountChanged()
+/*
+void MainWindow::latestAccountChanged()
 {
-	repopulateAccountsMenu();
+	repopulateProfilesMenu();
 
-	MojangAccountPtr account = MMC->accounts()->activeAccount();
-
-	if (account != nullptr && account->username() != "")
+	// FIXME: this is bullshit.
+	BaseAccount *account = MMC->accountsModel()->latest();
+	if (account && !account->avatar().isEmpty())
 	{
-		const AccountProfile *profile = account->currentProfile();
-		if (profile != nullptr)
-		{
-			accountMenuButton->setIcon(SkinUtils::getFaceFromCache(profile->name));
-			accountMenuButton->setText(profile->name);
-			return;
-		}
+		Resource::create(account->avatar(), Resource::create("icon:hourglass"))->applyTo(accountMenuButton);
 	}
-
-	// Set the icon to the "no account" icon.
-	accountMenuButton->setIcon(MMC->getThemedIcon("noaccount"));
-	accountMenuButton->setText(tr("Profiles"));
+	else
+	{
+		// Set the icon to the "no account" icon.
+		Resource::create("icon:noaccount")->applyTo(accountMenuButton);
+	}
 }
+*/
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
@@ -1189,7 +1096,8 @@ void MainWindow::finalizeInstance(InstancePtr inst)
 {
 	view->updateGeometries();
 	setSelectedInstanceById(inst->id());
-	if (MMC->accounts()->anyAccountIsValid())
+	auto acctType = inst->accountType();
+	if(acctType.isEmpty() || MMC->accountsStore()->hasAny(acctType))
 	{
 		ProgressDialog loadDialog(this);
 		auto update = inst->createUpdateTask();
@@ -1203,6 +1111,7 @@ void MainWindow::finalizeInstance(InstancePtr inst)
 	}
 	else
 	{
+		// FIXME: PARAMETRIZE
 		CustomMessageBox::selectable(
 			this, tr("Error"),
 			tr("MultiMC cannot download Minecraft or update instances unless you have at least "
@@ -1558,7 +1467,6 @@ void MainWindow::launch(InstancePtr instance, bool online, BaseProfilerFactory* 
 	m_launchController->setProfiler(profiler);
 	m_launchController->launch();
 }
-
 
 /*
 void MainWindow::onGameUpdateError(QString error)

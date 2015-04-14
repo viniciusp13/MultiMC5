@@ -7,6 +7,7 @@
 #include <MMCStrings.h>
 #include <pathmatcher/RegexpMatcher.h>
 #include <pathmatcher/MultiMatcher.h>
+#include "minecraft/auth/MojangAuthSession.h"
 
 #define IBUS "@im=ibus"
 
@@ -210,7 +211,7 @@ QProcessEnvironment MinecraftInstance::createEnvironment()
 	return env;
 }
 
-QMap<QString, QString> MinecraftInstance::createCensorFilterFromSession(AuthSessionPtr session)
+QMap<QString, QString> MinecraftInstance::createCensorFilterFromSession(MojangAuthSessionPtr session)
 {
 	if(!session)
 	{

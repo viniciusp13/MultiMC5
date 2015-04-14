@@ -20,10 +20,12 @@
 #include <QDebug>
 
 #include "InstanceList.h"
-#include "auth/MojangAccountList.h"
+#include "auth/AccountModel.h"
+#include <auth/AccountStore.h>
 #include "icons/IconList.h"
 #include "minecraft/LwjglVersionList.h"
 #include "minecraft/MinecraftVersionList.h"
+#include <minecraft/auth/MojangAccount.h>
 #include "liteloader/LiteLoaderVersionList.h"
 
 #include "forge/ForgeVersionList.h"
@@ -52,6 +54,7 @@
 #include "handlers/WebResourceHandler.h"
 
 #include "ftb/FTBPlugin.h"
+#include <screenshots/auth/ImgurAccount.h>
 
 using namespace Util::Commandline;
 
@@ -224,11 +227,15 @@ MultiMC::MultiMC(int &argc, char **argv, bool test_mode) : QApplication(argc, ar
 	connect(InstDirSetting.get(), SIGNAL(SettingChanged(const Setting &, QVariant)),
 			m_instances.get(), SLOT(on_InstFolderChanged(const Setting &, QVariant)));
 
-	// and accounts
-	m_accounts.reset(new MojangAccountList(this));
-	qDebug() << "Loading accounts...";
-	m_accounts->setListFilePath("accounts.json", true);
-	m_accounts->loadList();
+	ENV.setConfiguration({
+							 {"ImgurClientID", BuildConfig.IMGUR_CLIENT_ID},
+							 {"ImgurClientSecret", BuildConfig.IMGUR_CLIENT_SECRET}
+						 });
+
+	m_accountsStore.reset(new AccountStore);
+	// FIXME: account plugin hook point
+	m_accountsStore->registerType(new MojangAccountType());
+	m_accountsStore->registerType(new ImgurAccountType());
 
 	// init the http meta cache
 	ENV.initHttpMetaCache(rootPath, staticDataPath);

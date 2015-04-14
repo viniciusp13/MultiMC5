@@ -43,7 +43,7 @@ public:
 	{
 		return instanceRoot();
 	};
-	virtual std::shared_ptr<LaunchTask> createLaunchTask(AuthSessionPtr) override
+	virtual std::shared_ptr<LaunchTask> createLaunchTask(SessionPtr) override
 	{
 		return nullptr;
 	}
@@ -81,5 +81,9 @@ public:
 	virtual QString typeName() const override
 	{
 		return "Null";
+	}
+	virtual QString accountType() const override
+	{
+		return QString();
 	}
 };

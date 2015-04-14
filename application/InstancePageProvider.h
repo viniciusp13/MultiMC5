@@ -13,6 +13,7 @@
 #include "pages/BasePageProvider.h"
 #include "pages/LegacyJarModPage.h"
 #include "pages/WorldListPage.h"
+#include "pages/global/AccountListPage.h"
 #include <pathutils.h>
 
 
