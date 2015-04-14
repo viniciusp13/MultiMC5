@@ -219,6 +219,8 @@ set(LOGIC_SOURCES
 	tasks/ThreadTask.cpp
 	tasks/SequentialTask.h
 	tasks/SequentialTask.cpp
+	tasks/StandardTask.h
+	tasks/StandardTask.cpp
 
 	# Settings
 	settings/INIFile.cpp
