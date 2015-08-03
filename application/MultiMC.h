@@ -9,6 +9,7 @@
 #include <updater/GoUpdate.h>
 
 class QFile;
+class QFileSystemWatcher;
 class MinecraftVersionList;
 class LWJGLVersionList;
 class HttpMetaCache;
@@ -48,7 +49,8 @@ public:
 	MultiMC(int &argc, char **argv, bool test_mode = false);
 	virtual ~MultiMC();
 
-	// InstanceList, IconList, OneSixFTBInstance, LegacyUpdate, LegacyInstance, MCEditTool, JVisualVM, MinecraftInstance, JProfiler, BaseInstance
+	// InstanceList, IconList, OneSixFTBInstance, LegacyUpdate, LegacyInstance, MCEditTool,
+	// JVisualVM, MinecraftInstance, JProfiler, BaseInstance
 	std::shared_ptr<SettingsObject> settings()
 	{
 		return m_settings;
@@ -59,9 +61,9 @@ public:
 		return startTime.msecsTo(QDateTime::currentDateTime());
 	}
 
-	QIcon getThemedIcon(const QString& name);
+	QIcon getThemedIcon(const QString &name);
 
-	void setIconTheme(const QString& name);
+	void setIconTheme(const QString &name);
 
 	// DownloadUpdateTask
 	std::shared_ptr<UpdateChecker> updateChecker()
@@ -167,11 +169,14 @@ private:
 	QMap<QString, std::shared_ptr<BaseProfilerFactory>> m_profilers;
 	QMap<QString, std::shared_ptr<BaseDetachedToolFactory>> m_tools;
 
+	QFileSystemWatcher *m_themeWatcher;
+
 	QString rootPath;
 	QString staticDataPath;
 	QString dataPath;
 
 	Status m_status = MultiMC::Failed;
+
 public:
 	std::shared_ptr<QFile> logFile;
 };

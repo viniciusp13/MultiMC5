@@ -192,7 +192,8 @@ MultiMC::MultiMC(int &argc, char **argv, bool test_mode) : QApplication(argc, ar
 	initTranslations();
 
 	// initialize the updater
-	m_updateChecker.reset(new UpdateChecker(BuildConfig.CHANLIST_URL, BuildConfig.VERSION_CHANNEL, BuildConfig.VERSION_BUILD));
+	m_updateChecker.reset(new UpdateChecker(
+		BuildConfig.CHANLIST_URL, BuildConfig.VERSION_CHANNEL, BuildConfig.VERSION_BUILD));
 
 	m_translationChecker.reset(new TranslationDownloader());
 
@@ -242,7 +243,7 @@ MultiMC::MultiMC(int &argc, char **argv, bool test_mode) : QApplication(argc, ar
 
 	m_translationChecker->downloadTranslations();
 
-	//FIXME: what to do with these?
+	// FIXME: what to do with these?
 	m_profilers.insert("jprofiler",
 					   std::shared_ptr<BaseProfilerFactory>(new JProfilerFactory()));
 	m_profilers.insert("jvisualvm",
@@ -252,12 +253,31 @@ MultiMC::MultiMC(int &argc, char **argv, bool test_mode) : QApplication(argc, ar
 		profiler->registerSettings(m_settings);
 	}
 
-	//FIXME: what to do with these?
+	// FIXME: what to do with these?
 	m_tools.insert("mcedit", std::shared_ptr<BaseDetachedToolFactory>(new MCEditFactory()));
 	for (auto tool : m_tools.values())
 	{
 		tool->registerSettings(m_settings);
 	}
+
+	m_themeWatcher = new QFileSystemWatcher();
+	connect(m_themeWatcher, &QFileSystemWatcher::fileChanged, [=](QString name)
+			{
+				if (QFileInfo(name).exists())
+				{
+					QResource::registerResource(QFileInfo(name).absoluteFilePath());
+				}
+				else
+				{
+					QResource::unregisterResource(QFileInfo(name).absoluteFilePath());
+				}
+			});
+	QDir themesDir("themes");
+	if (!QDir::current().exists("themes"))
+	{
+		QDir::current().mkpath("themes");
+	}
+	m_themeWatcher->addPath(themesDir.absolutePath());
 
 	connect(this, SIGNAL(aboutToQuit()), SLOT(onExit()));
 	m_status = MultiMC::Initialized;
@@ -272,6 +292,10 @@ MultiMC::~MultiMC()
 	if (m_qt_translator)
 	{
 		removeTranslator(m_qt_translator.get());
+	}
+	if (m_themeWatcher)
+	{
+		delete m_themeWatcher;
 	}
 }
 
@@ -296,7 +320,7 @@ void MultiMC::initTranslations()
 							  QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
 	{
 		qDebug() << "Loading Qt Language File for"
-					 << locale.bcp47Name().toLocal8Bit().constData() << "...";
+				 << locale.bcp47Name().toLocal8Bit().constData() << "...";
 		if (!installTranslator(m_qt_translator.get()))
 		{
 			qCritical() << "Loading Qt Language File failed.";
@@ -312,7 +336,7 @@ void MultiMC::initTranslations()
 	if (m_mmc_translator->load("mmc_" + locale.bcp47Name(), staticDataPath + "/translations"))
 	{
 		qDebug() << "Loading MMC Language File for"
-					 << locale.bcp47Name().toLocal8Bit().constData() << "...";
+				 << locale.bcp47Name().toLocal8Bit().constData() << "...";
 		if (!installTranslator(m_mmc_translator.get()))
 		{
 			qCritical() << "Loading MMC Language File failed.";
@@ -329,43 +353,47 @@ void MultiMC::initIcons()
 {
 	auto setting = MMC->settings()->getSetting("IconsDir");
 	ENV.m_icons.reset(new IconList(QString(":/icons/instances/"), setting->get().toString()));
-	connect(setting.get(), &Setting::SettingChanged,[&](const Setting &, QVariant value)
-	{
-		ENV.m_icons->directoryChanged(value.toString());
-	});
+	connect(setting.get(), &Setting::SettingChanged, [&](const Setting &, QVariant value)
+			{
+				ENV.m_icons->directoryChanged(value.toString());
+			});
 
-	Resource::registerTransformer([](const QVariantMap &map) -> QIcon
-	{
-		QIcon icon;
-		for (auto it = map.constBegin(); it != map.constEnd(); ++it)
+	Resource::registerTransformer(
+		[](const QVariantMap &map) -> QIcon
 		{
-			icon.addFile(it.key(), QSize(it.value().toInt(), it.value().toInt()));
-		}
-		return icon;
-	});
+			QIcon icon;
+			for (auto it = map.constBegin(); it != map.constEnd(); ++it)
+			{
+				icon.addFile(it.key(), QSize(it.value().toInt(), it.value().toInt()));
+			}
+			return icon;
+		});
 	Resource::registerTransformer([](const QVariantMap &map) -> QPixmap
-	{
-		QVariantList sizes = map.values();
-		if (sizes.isEmpty())
-		{
-			return QPixmap();
-		}
-		std::sort(sizes.begin(), sizes.end());
-		if (sizes.last().toInt() != -1) // only scalable available
-		{
-			return QPixmap(map.key(sizes.last()));
-		}
-		else
-		{
-			return QPixmap();
-		}
-	});
+								  {
+									  QVariantList sizes = map.values();
+									  if (sizes.isEmpty())
+									  {
+										  return QPixmap();
+									  }
+									  std::sort(sizes.begin(), sizes.end());
+									  if (sizes.last().toInt() != -1) // only scalable available
+									  {
+										  return QPixmap(map.key(sizes.last()));
+									  }
+									  else
+									  {
+										  return QPixmap();
+									  }
+								  });
 	Resource::registerTransformer([](const QByteArray &data) -> QPixmap
-	{ return QPixmap::fromImage(QImage::fromData(data)); });
+								  {
+									  return QPixmap::fromImage(QImage::fromData(data));
+								  });
 	Resource::registerTransformer([](const QByteArray &data) -> QIcon
-	{ return QIcon(QPixmap::fromImage(QImage::fromData(data))); });
+								  {
+									  return QIcon(QPixmap::fromImage(QImage::fromData(data)));
+								  });
 }
-
 
 void moveFile(const QString &oldName, const QString &newName)
 {
@@ -373,7 +401,6 @@ void moveFile(const QString &oldName, const QString &newName)
 	QFile::copy(oldName, newName);
 	QFile::remove(oldName);
 }
-
 
 void appDebugOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -434,7 +461,7 @@ void MultiMC::initGlobalSettings(bool test_mode)
 #else
 	defaultMonospace = "Monospace";
 #endif
-	if(!test_mode)
+	if (!test_mode)
 	{
 		// resolve the font so the default actually matches
 		QFont consoleFont;
@@ -445,7 +472,7 @@ void MultiMC::initGlobalSettings(bool test_mode)
 		QString resolvedDefaultMonospace = consoleFontInfo.family();
 		QFont resolvedFont(resolvedDefaultMonospace);
 		qDebug() << "Detected default console font:" << resolvedDefaultMonospace
-			<< ", substitutions:" << resolvedFont.substitutions().join(',');
+				 << ", substitutions:" << resolvedFont.substitutions().join(',');
 		m_settings->registerSetting("ConsoleFont", resolvedDefaultMonospace);
 	}
 	else
@@ -587,12 +614,12 @@ std::shared_ptr<JavaVersionList> MultiMC::javalist()
 
 // from <sys/stat.h>
 #ifndef S_IRUSR
-#define __S_IREAD 0400         /* Read by owner.  */
-#define __S_IWRITE 0200        /* Write by owner.  */
-#define __S_IEXEC 0100         /* Execute by owner.  */
-#define S_IRUSR __S_IREAD      /* Read by owner.  */
-#define S_IWUSR __S_IWRITE     /* Write by owner.  */
-#define S_IXUSR __S_IEXEC      /* Execute by owner.  */
+#define __S_IREAD 0400	 /* Read by owner.  */
+#define __S_IWRITE 0200	/* Write by owner.  */
+#define __S_IEXEC 0100	 /* Execute by owner.  */
+#define S_IRUSR __S_IREAD  /* Read by owner.  */
+#define S_IWUSR __S_IWRITE /* Write by owner.  */
+#define S_IXUSR __S_IEXEC  /* Execute by owner.  */
 
 #define S_IRGRP (S_IRUSR >> 3) /* Read by group.  */
 #define S_IWGRP (S_IWUSR >> 3) /* Write by group.  */
@@ -602,6 +629,7 @@ std::shared_ptr<JavaVersionList> MultiMC::javalist()
 #define S_IWOTH (S_IWGRP >> 3) /* Write by others.  */
 #define S_IXOTH (S_IXGRP >> 3) /* Execute by others.  */
 #endif
+
 static QFile::Permissions unixModeToPermissions(const int mode)
 {
 	QFile::Permissions perms;
@@ -668,12 +696,12 @@ void MultiMC::installUpdates(const QString updateFilesDir, GoUpdate::OperationLi
 	QDir origin(root());
 
 	// clean up the backup folder. it should be empty before we start
-	if(!deletePath(backupPath))
+	if (!deletePath(backupPath))
 	{
 		qWarning() << "couldn't remove previous backup folder" << backupPath;
 	}
 	// and it should exist.
-	if(!ensureFolderPathExists(backupPath))
+	if (!ensureFolderPathExists(backupPath))
 	{
 		qWarning() << "couldn't create folder" << backupPath;
 		return;
@@ -693,8 +721,8 @@ void MultiMC::installUpdates(const QString updateFilesDir, GoUpdate::OperationLi
 	} failedOperationType = Nothing;
 	QString failedFile;
 
-	QList <BackupEntry> backups;
-	QList <BackupEntry> trashcan;
+	QList<BackupEntry> backups;
+	QList<BackupEntry> trashcan;
 
 	bool useXPHack = false;
 	QString exePath;
@@ -702,85 +730,88 @@ void MultiMC::installUpdates(const QString updateFilesDir, GoUpdate::OperationLi
 	QString exeBackup;
 
 	// perform the update operations
-	for(auto op: operations)
+	for (auto op : operations)
 	{
-		switch(op.type)
+		switch (op.type)
 		{
-			// replace = move original out to backup, if it exists, move the new file in its place
-			case GoUpdate::Operation::OP_REPLACE:
-			{
-				QFileInfo replaced (PathCombine(root(), op.dest));
+		// replace = move original out to backup, if it exists, move the new file in its place
+		case GoUpdate::Operation::OP_REPLACE:
+		{
+			QFileInfo replaced(PathCombine(root(), op.dest));
 #ifdef Q_OS_WIN32
-				if(QSysInfo::windowsVersion() < QSysInfo::WV_VISTA)
-				{
-					if(replaced.fileName() == "MultiMC.exe")
-					{
-						QDir rootDir(root());
-						exeOrigin = rootDir.relativeFilePath(op.file);
-						exePath = rootDir.relativeFilePath(op.dest);
-						exeBackup = rootDir.relativeFilePath(PathCombine(backupPath, replaced.fileName()));
-						useXPHack = true;
-						continue;
-					}
-				}
-#endif
-				if(replaced.exists())
-				{
-					QString backupName = op.dest;
-					backupName.replace('/', '_');
-					QString backupFilePath = PathCombine(backupPath, backupName);
-					if(!QFile::rename(replaced.absoluteFilePath(), backupFilePath))
-					{
-						qWarning() << "Couldn't move:" << replaced.absoluteFilePath() << "to" << backupFilePath;
-						failedOperationType = Replace;
-						failedFile = op.dest;
-						goto FAILED;
-					}
-					BackupEntry be;
-					be.orig = replaced.absoluteFilePath();
-					be.backup = backupFilePath;
-					backups.append(be);
-				}
-				// make sure the folder we are putting this into exists
-				if(!ensureFilePathExists(replaced.absoluteFilePath()))
-				{
-					qWarning() << "REPLACE: Couldn't create folder:" << replaced.absoluteFilePath();
-					failedOperationType = Replace;
-					failedFile = op.dest;
-					goto FAILED;
-				}
-				// now move the new file in
-				if(!QFile::rename(op.file, replaced.absoluteFilePath()))
-				{
-					qWarning() << "REPLACE: Couldn't move:" << op.file << "to" << replaced.absoluteFilePath();
-					failedOperationType = Replace;
-					failedFile = op.dest;
-					goto FAILED;
-				}
-				QFile::setPermissions(replaced.absoluteFilePath(), unixModeToPermissions(op.mode));
-			}
-			break;
-			// delete = move original to backup
-			case GoUpdate::Operation::OP_DELETE:
+			if (QSysInfo::windowsVersion() < QSysInfo::WV_VISTA)
 			{
-				QString trashFilePath = PathCombine(backupPath, op.file);
-				QString origFilePath = PathCombine(root(), op.file);
-				if(QFile::exists(origFilePath))
+				if (replaced.fileName() == "MultiMC.exe")
 				{
-					if(!QFile::rename(origFilePath, trashFilePath))
-					{
-						qWarning() << "DELETE: Couldn't move:" << op.file << "to" << trashFilePath;
-						failedFile = op.file;
-						failedOperationType = Delete;
-						goto FAILED;
-					}
-					BackupEntry be;
-					be.orig = origFilePath;
-					be.backup = trashFilePath;
-					trashcan.append(be);
+					QDir rootDir(root());
+					exeOrigin = rootDir.relativeFilePath(op.file);
+					exePath = rootDir.relativeFilePath(op.dest);
+					exeBackup =
+						rootDir.relativeFilePath(PathCombine(backupPath, replaced.fileName()));
+					useXPHack = true;
+					continue;
 				}
 			}
-			break;
+#endif
+			if (replaced.exists())
+			{
+				QString backupName = op.dest;
+				backupName.replace('/', '_');
+				QString backupFilePath = PathCombine(backupPath, backupName);
+				if (!QFile::rename(replaced.absoluteFilePath(), backupFilePath))
+				{
+					qWarning() << "Couldn't move:" << replaced.absoluteFilePath() << "to"
+							   << backupFilePath;
+					failedOperationType = Replace;
+					failedFile = op.dest;
+					goto FAILED;
+				}
+				BackupEntry be;
+				be.orig = replaced.absoluteFilePath();
+				be.backup = backupFilePath;
+				backups.append(be);
+			}
+			// make sure the folder we are putting this into exists
+			if (!ensureFilePathExists(replaced.absoluteFilePath()))
+			{
+				qWarning() << "REPLACE: Couldn't create folder:" << replaced.absoluteFilePath();
+				failedOperationType = Replace;
+				failedFile = op.dest;
+				goto FAILED;
+			}
+			// now move the new file in
+			if (!QFile::rename(op.file, replaced.absoluteFilePath()))
+			{
+				qWarning() << "REPLACE: Couldn't move:" << op.file << "to"
+						   << replaced.absoluteFilePath();
+				failedOperationType = Replace;
+				failedFile = op.dest;
+				goto FAILED;
+			}
+			QFile::setPermissions(replaced.absoluteFilePath(), unixModeToPermissions(op.mode));
+		}
+		break;
+		// delete = move original to backup
+		case GoUpdate::Operation::OP_DELETE:
+		{
+			QString trashFilePath = PathCombine(backupPath, op.file);
+			QString origFilePath = PathCombine(root(), op.file);
+			if (QFile::exists(origFilePath))
+			{
+				if (!QFile::rename(origFilePath, trashFilePath))
+				{
+					qWarning() << "DELETE: Couldn't move:" << op.file << "to" << trashFilePath;
+					failedFile = op.file;
+					failedOperationType = Delete;
+					goto FAILED;
+				}
+				BackupEntry be;
+				be.orig = origFilePath;
+				be.backup = trashFilePath;
+				trashcan.append(be);
+			}
+		}
+		break;
 		}
 	}
 
@@ -788,8 +819,9 @@ void MultiMC::installUpdates(const QString updateFilesDir, GoUpdate::OperationLi
 	args = qApp->arguments();
 	args.removeFirst();
 
-	// on old Windows, do insane things... no error checking here, this is just to have something.
-	if(useXPHack)
+	// on old Windows, do insane things... no error checking here, this is just to have
+	// something.
+	if (useXPHack)
 	{
 		QString script;
 		auto nativePath = QDir::toNativeSeparators(exePath);
@@ -822,7 +854,7 @@ void MultiMC::installUpdates(const QString updateFilesDir, GoUpdate::OperationLi
 	}
 	started = QProcess::startDetached(finishCmd, args, QDir::currentPath(), &pid);
 	// failed to start... ?
-	if(!started || pid == -1)
+	if (!started || pid == -1)
 	{
 		qWarning() << "Couldn't start new process properly!";
 		failedOperationType = Start;
@@ -836,47 +868,48 @@ FAILED:
 	qWarning() << "Update failed!";
 	bool revertOK = true;
 	// if the above failed, roll back changes
-	for(auto backup:backups)
+	for (auto backup : backups)
 	{
 		qWarning() << "restoring" << backup.orig << "from" << backup.backup;
-		if(!QFile::remove(backup.orig))
+		if (!QFile::remove(backup.orig))
 		{
 			revertOK = false;
 			qWarning() << "removing new" << backup.orig << "failed!";
 			continue;
 		}
 
-		if(!QFile::rename(backup.backup, backup.orig))
+		if (!QFile::rename(backup.backup, backup.orig))
 		{
 			revertOK = false;
 			qWarning() << "restoring" << backup.orig << "failed!";
 		}
 	}
-	for(auto backup:trashcan)
+	for (auto backup : trashcan)
 	{
 		qWarning() << "restoring" << backup.orig << "from" << backup.backup;
-		if(!QFile::rename(backup.backup, backup.orig))
+		if (!QFile::rename(backup.backup, backup.orig))
 		{
 			revertOK = false;
 			qWarning() << "restoring" << backup.orig << "failed!";
 		}
 	}
 	QString msg;
-	if(!revertOK)
+	if (!revertOK)
 	{
 		msg = tr("The update failed and then the update revert failed too.\n"
-			"You will have to repair MultiMC manually.\n"
-				"Please let us know why and how this happened.").arg(failedFile);
+				 "You will have to repair MultiMC manually.\n"
+				 "Please let us know why and how this happened.").arg(failedFile);
 	}
-	else switch (failedOperationType)
-	{
+	else
+		switch (failedOperationType)
+		{
 		case Replace:
 			msg = tr("Couldn't replace file %1. Changes were reverted.\n"
-				"See the MultiMC log file for details.").arg(failedFile);
+					 "See the MultiMC log file for details.").arg(failedFile);
 			break;
 		case Delete:
 			msg = tr("Couldn't remove file %1. Changes were reverted.\n"
-				"See the MultiMC log file for details.").arg(failedFile);
+					 "See the MultiMC log file for details.").arg(failedFile);
 			break;
 		case Start:
 			msg = tr("The new version didn't start and the update was rolled back.");
@@ -884,29 +917,29 @@ FAILED:
 		case Nothing:
 		default:
 			return;
-	}
+		}
 	QMessageBox::critical(nullptr, tr("Update failed!"), msg);
 }
 
-void MultiMC::setIconTheme(const QString& name)
+void MultiMC::setIconTheme(const QString &name)
 {
 	XdgIcon::setThemeName(name);
 	IconResourceHandler::setTheme(name);
 }
 
-QIcon MultiMC::getThemedIcon(const QString& name)
+QIcon MultiMC::getThemedIcon(const QString &name)
 {
 	return XdgIcon::fromTheme(name);
 }
 
 void MultiMC::onExit()
 {
-	if(m_instances)
+	if (m_instances)
 	{
 		m_instances->saveGroupList();
 	}
 	ENV.destroy();
-	if(logFile)
+	if (logFile)
 	{
 		logFile->flush();
 		logFile->close();
