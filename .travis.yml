@@ -12,7 +12,7 @@ os:
  - linux
 # - osx
 env:
- - QT_VERSION=5.4.1 # latest stable
+ - QT_VERSION=5.4.2 # latest stable
 # - QT_VERSION=5.5-beta # latest
 matrix:
   exclude:
