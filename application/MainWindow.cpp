@@ -352,7 +352,6 @@ namespace Ui {
 #include "dialogs/ExportInstanceDialog.h"
 
 #include "InstanceList.h"
-#include "minecraft/MinecraftVersionList.h"
 #include "minecraft/LwjglVersionList.h"
 #include "icons/IconList.h"
 #include "java/JavaVersionList.h"
@@ -377,6 +376,9 @@ namespace Ui {
 #include "SettingsUI.h"
 #include "minecraft/SkinUtils.h"
 #include "resources/Resource.h"
+#include "wonko/WonkoVersion.h"
+
+#include "WonkoGui.h"
 
 #include <updater/UpdateChecker.h>
 #include <notifications/NotificationChecker.h>
@@ -575,11 +577,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	// run the things that load and download other things... FIXME: this is NOT the place
 	// FIXME: invisible actions in the background = NOPE.
 	{
-		if (!MMC->minecraftlist()->isLoaded())
-		{
-			m_versionLoadTask = MMC->minecraftlist()->getLoadTask();
-			startTask(m_versionLoadTask);
-		}
 		if (!MMC->lwjgllist()->isLoaded())
 		{
 			MMC->lwjgllist()->loadList();
@@ -1031,19 +1028,6 @@ static QFileInfo findRecursive(const QString &dir, const QString &name)
 	return QFileInfo();
 }
 
-// FIXME: eliminate, should not be needed
-void MainWindow::waitForMinecraftVersions()
-{
-	if (!MMC->minecraftlist()->isLoaded() && m_versionLoadTask &&
-		m_versionLoadTask->isRunning())
-	{
-		QEventLoop waitLoop;
-		waitLoop.connect(m_versionLoadTask, SIGNAL(failed(QString)), SLOT(quit()));
-		waitLoop.connect(m_versionLoadTask, SIGNAL(succeeded()), SLOT(quit()));
-		waitLoop.exec();
-	}
-}
-
 InstancePtr MainWindow::instanceFromZipPack(QString instName, QString instGroup, QString instIcon, QUrl url)
 {
 	InstancePtr newInstance;
@@ -1144,9 +1128,11 @@ InstancePtr MainWindow::instanceFromZipPack(QString instName, QString instGroup,
 	return newInstance;
 }
 
-InstancePtr MainWindow::instanceFromVersion(QString instName, QString instGroup, QString instIcon, BaseVersionPtr version)
+InstancePtr MainWindow::instanceFromVersion(QString instName, QString instGroup, QString instIcon, WonkoVersionPtr version)
 {
 	InstancePtr newInstance;
+
+	Wonko::ensureVersionLoaded(version->uid(), version->version(), this);
 
 	QString instancesDir = MMC->settings()->get("InstanceDir").toString();
 	QString instDirName = FS::DirNameFromString(instName, instancesDir);
@@ -1217,8 +1203,6 @@ void MainWindow::finalizeInstance(InstancePtr inst)
 
 void MainWindow::on_actionAddInstance_triggered()
 {
-	waitForMinecraftVersions();
-
 	NewInstanceDialog newInstDlg(this);
 	if (!newInstDlg.exec())
 		return;
@@ -1233,7 +1217,8 @@ void MainWindow::on_actionAddInstance_triggered()
 	}
 	else
 	{
-		instanceFromVersion(newInstDlg.instName(), newInstDlg.instGroup(), newInstDlg.iconKey(), newInstDlg.selectedVersion());
+		instanceFromVersion(newInstDlg.instName(), newInstDlg.instGroup(), newInstDlg.iconKey(),
+							std::dynamic_pointer_cast<WonkoVersion>(newInstDlg.selectedVersion()));
 	}
 }
 
@@ -1577,27 +1562,6 @@ void MainWindow::onGameUpdateError(QString error)
 								 QMessageBox::Warning)->show();
 }
 */
-void MainWindow::taskStart()
-{
-	// Nothing to do here yet.
-}
-
-void MainWindow::taskEnd()
-{
-	QObject *sender = QObject::sender();
-	if (sender == m_versionLoadTask)
-		m_versionLoadTask = NULL;
-
-	sender->deleteLater();
-}
-
-void MainWindow::startTask(Task *task)
-{
-	connect(task, SIGNAL(started()), SLOT(taskStart()));
-	connect(task, SIGNAL(succeeded()), SLOT(taskEnd()));
-	connect(task, SIGNAL(failed(QString)), SLOT(taskEnd()));
-	task->start();
-}
 
 // BrowserDialog
 void MainWindow::openWebPage(QUrl url)

@@ -33,6 +33,7 @@ class LabeledToolButton;
 class QLabel;
 class MinecraftLauncher;
 class BaseProfilerFactory;
+using WonkoVersionPtr = std::shared_ptr<class WonkoVersion>;
 
 namespace Ui
 {
@@ -119,9 +120,6 @@ slots:
 
 	void on_actionScreenshots_triggered();
 
-	void taskStart();
-	void taskEnd();
-
 	// called when an icon is changed in the icon model.
 	void iconUpdated(QString);
 
@@ -139,8 +137,6 @@ slots:
 	void instanceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
 	void selectionBad();
-
-	void startTask(Task *task);
 
 	void updateAvailable(GoUpdate::Status status);
 
@@ -166,8 +162,7 @@ protected:
 	void setCatBackground(bool enabled);
 	void updateInstanceToolIcon(QString new_icon);
 
-	void waitForMinecraftVersions();
-	InstancePtr instanceFromVersion(QString instName, QString instGroup, QString instIcon, BaseVersionPtr version);
+	InstancePtr instanceFromVersion(QString instName, QString instGroup, QString instIcon, WonkoVersionPtr version);
 	InstancePtr instanceFromZipPack(QString instName, QString instGroup, QString instIcon, QUrl url);
 	void finalizeInstance(InstancePtr inst);
 	void launch(InstancePtr instance, bool online = true, BaseProfilerFactory *profiler = nullptr);
