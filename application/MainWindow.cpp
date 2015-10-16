@@ -1210,15 +1210,18 @@ void MainWindow::on_actionAddInstance_triggered()
 	MMC->settings()->set("LastUsedGroupForNewInstance", newInstDlg.instGroup());
 
 	const QUrl modpackUrl = newInstDlg.modpackUrl();
-
 	if (modpackUrl.isValid())
 	{
 		instanceFromZipPack(newInstDlg.instName(), newInstDlg.instGroup(), newInstDlg.iconKey(), modpackUrl);
 	}
 	else
 	{
-		instanceFromVersion(newInstDlg.instName(), newInstDlg.instGroup(), newInstDlg.iconKey(),
-							std::dynamic_pointer_cast<WonkoVersion>(newInstDlg.selectedVersion()));
+		InstancePtr instance = instanceFromVersion(newInstDlg.instName(), newInstDlg.instGroup(), newInstDlg.iconKey(),
+												   std::dynamic_pointer_cast<WonkoVersion>(newInstDlg.selectedVersion()));
+		if (newInstDlg.isImported())
+		{
+			newInstDlg.import(instance);
+		}
 	}
 }
 

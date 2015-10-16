@@ -66,6 +66,9 @@
    </item>
    <item>
     <widget class="QLineEdit" name="instNameTextBox">
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
      <property name="placeholderText">
       <string>Name</string>
      </property>
@@ -107,6 +110,27 @@
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="0" colspan="2">
+      <widget class="QLineEdit" name="versionTextBox">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QToolButton" name="btnChangeVersion">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0" colspan="3">
+      <widget class="QRadioButton" name="modpackBox">
+       <property name="text">
+        <string>Import &amp;Modpack (local file or link):</string>
+       </property>
+      </widget>
+     </item>
      <item row="4" column="2">
       <widget class="QToolButton" name="modpackBtn">
        <property name="enabled">
@@ -127,27 +151,6 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0" colspan="2">
-      <widget class="QLineEdit" name="versionTextBox">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QToolButton" name="btnChangeVersion">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0" colspan="3">
-      <widget class="QRadioButton" name="modpackBox">
-       <property name="text">
-        <string>Impor&amp;t Modpack (local file or link):</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="0" colspan="3">
       <widget class="QRadioButton" name="versionBox">
        <property name="text">
@@ -155,6 +158,31 @@
        </property>
        <property name="checked">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0" colspan="3">
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1">
+       <item>
+        <widget class="QRadioButton" name="importBtn">
+         <property name="text">
+          <string>Import</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="importProviderBox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="6" column="0" colspan="3">
+      <widget class="QComboBox" name="importCandidateBox">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -212,8 +240,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>257</x>
-     <y>333</y>
+     <x>265</x>
+     <y>395</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -228,8 +256,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>333</y>
+     <x>268</x>
+     <y>395</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -244,12 +272,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>81</x>
-     <y>229</y>
+     <x>90</x>
+     <y>253</y>
     </hint>
     <hint type="destinationlabel">
-     <x>236</x>
-     <y>221</y>
+     <x>239</x>
+     <y>283</y>
     </hint>
    </hints>
   </connection>
@@ -260,12 +288,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>129</x>
-     <y>225</y>
+     <x>138</x>
+     <y>253</y>
     </hint>
     <hint type="destinationlabel">
-     <x>328</x>
-     <y>229</y>
+     <x>267</x>
+     <y>282</y>
     </hint>
    </hints>
   </connection>
@@ -280,8 +308,8 @@
      <y>195</y>
     </hint>
     <hint type="destinationlabel">
-     <x>213</x>
-     <y>191</y>
+     <x>222</x>
+     <y>225</y>
     </hint>
    </hints>
   </connection>
@@ -292,12 +320,44 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>104</x>
-     <y>198</y>
+     <x>113</x>
+     <y>195</y>
     </hint>
     <hint type="destinationlabel">
-     <x>322</x>
-     <y>192</y>
+     <x>267</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>importBtn</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>importProviderBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>37</x>
+     <y>301</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>119</x>
+     <y>304</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>importBtn</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>importCandidateBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>52</x>
+     <y>305</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>53</x>
+     <y>324</y>
     </hint>
    </hints>
   </connection>

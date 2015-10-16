@@ -24,7 +24,7 @@ public:
 
 	/// Helper function, usage: m_view->setModel(ResourceProxyModel::mixin<QIcon>(m_model));
 	template <typename T>
-	static QAbstractItemModel *mixin(QAbstractItemModel *model)
+	static ResourceProxyModel *mixin(QAbstractItemModel *model)
 	{
 		ResourceProxyModel *proxy = new ResourceProxyModel(qMetaTypeId<T>(), model);
 		proxy->setSourceModel(model);

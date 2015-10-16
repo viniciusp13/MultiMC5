@@ -19,6 +19,9 @@ CMakeLists.txt.user.*
 # Build dirs
 build
 /build-*
+/*-build
+/bii
+/bin
 
 # Ctags File
 tags

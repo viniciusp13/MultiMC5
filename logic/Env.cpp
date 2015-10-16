@@ -108,16 +108,6 @@ public:
 };
 */
 
-BaseVersionPtr Env::getVersion(QString component, QString version)
-{
-	auto list = getVersionList(component);
-	if(!list)
-	{
-		return nullptr;
-	}
-	return list->findVersion(version);
-}
-
 std::shared_ptr< BaseVersionList > Env::getVersionList(QString component)
 {
 	auto iter = m_versionLists.find(component);

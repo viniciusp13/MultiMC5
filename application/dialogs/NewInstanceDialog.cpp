@@ -23,15 +23,21 @@
 #include "InstanceList.h"
 #include "WonkoGui.h"
 #include "wonko/WonkoVersionList.h"
+#include "wonko/WonkoVersion.h"
+#include "import/ImportProviderModel.h"
+#include "import/BaseImportProvider.h"
+#include "resources/ResourceProxyModel.h"
 
 #include "VersionSelectDialog.h"
 #include "ProgressDialog.h"
 #include "IconPickerDialog.h"
+#include "WonkoGui.h"
 
 #include <QLayout>
 #include <QPushButton>
 #include <QFileDialog>
 #include <QValidator>
+#include <QMessageBox>
 
 class UrlValidator : public QValidator
 {
@@ -70,12 +76,14 @@ NewInstanceDialog::NewInstanceDialog(QWidget *parent)
 
 	ui->modpackEdit->setValidator(new UrlValidator(ui->modpackEdit));
 
-	ui->instNameTextBox->setAlignment(Qt::AlignHCenter);
+	ui->importProviderBox->setModel(ResourceProxyModel::mixin<QIcon>(new ImportProviderModel(MMC->settings(), this)));
 
 	connect(ui->modpackEdit, &QLineEdit::textChanged, this, &NewInstanceDialog::updateDialogState);
-	connect(ui->modpackBox, &QRadioButton::clicked, this, &NewInstanceDialog::updateDialogState);
 	connect(ui->versionBox, &QRadioButton::clicked, this, &NewInstanceDialog::updateDialogState);
+	connect(ui->modpackBox, &QRadioButton::clicked, this, &NewInstanceDialog::updateDialogState);
+	connect(ui->importBtn, &QRadioButton::clicked, this, &NewInstanceDialog::updateDialogState);
 	connect(ui->versionTextBox, &QLineEdit::textChanged, this, &NewInstanceDialog::updateDialogState);
+	connect(ui->importCandidateBox, &QComboBox::currentTextChanged, this, &NewInstanceDialog::updateDialogState);
 
 	auto groups = MMC->instances()->getGroups().toSet();
 	auto groupList = QStringList(groups.toList());
@@ -96,6 +104,7 @@ NewInstanceDialog::NewInstanceDialog(QWidget *parent)
 
 	originalPlaceholderText = ui->instNameTextBox->placeholderText();
 	updateDialogState();
+	on_importProviderBox_currentIndexChanged();
 }
 
 NewInstanceDialog::~NewInstanceDialog()
@@ -106,7 +115,7 @@ NewInstanceDialog::~NewInstanceDialog()
 void NewInstanceDialog::updateDialogState()
 {
 	QString suggestedName;
-	if(ui->versionBox->isChecked())
+	if (ui->versionBox->isChecked())
 	{
 		suggestedName = ui->versionTextBox->text();
 	}
@@ -115,6 +124,22 @@ void NewInstanceDialog::updateDialogState()
 		auto url = QUrl::fromUserInput(ui->modpackEdit->text());
 		QFileInfo fi(url.fileName());
 		suggestedName = fi.completeBaseName();
+	}
+	else if (ui->importBtn->isChecked())
+	{
+		suggestedName = ui->importCandidateBox->currentText();
+
+		const QVariant iconName = ui->importCandidateBox->currentData(BaseImportProvider::IconNameRole);
+		if (!iconName.isNull())
+		{
+			const QVariant path = ui->importCandidateBox->currentData(BaseImportProvider::IconPathRole);
+			if (!path.isNull())
+			{
+				ENV.icons()->addIcon(iconName.toString(), iconName.toString(), path.toString(), MMCIcon::Transient);
+			}
+			InstIconKey = iconName.toString();
+			ui->iconButton->setIcon(ENV.icons()->getIcon(InstIconKey));
+		}
 	}
 	if(suggestedName.isEmpty())
 	{
@@ -126,7 +151,8 @@ void NewInstanceDialog::updateDialogState()
 	}
 	bool allowOK = !instName().isEmpty() && (
 		(ui->versionBox->isChecked() && m_selectedVersion) ||
-		(ui->modpackBox->isChecked() && ui->modpackEdit->hasAcceptableInput())
+		(ui->modpackBox->isChecked() && ui->modpackEdit->hasAcceptableInput() ||
+		(ui->importBtn->isChecked() && ui->importCandidateBox->currentIndex() != -1))
 	);
 	ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(allowOK);
 }
@@ -188,9 +214,28 @@ QUrl NewInstanceDialog::modpackUrl() const
 	}
 }
 
-BaseVersionPtr NewInstanceDialog::selectedVersion() const
+BaseVersionPtr NewInstanceDialog::selectedVersion()
 {
-	return m_selectedVersion;
+	if (isImported())
+	{
+		// FIXME: this shouldn't be here
+		Wonko::ensureVersionListLoaded("net.minecraft", this);
+		return selectedImportProvider()->baseVersion(currentCandidateIndex());
+	}
+	else
+	{
+		return m_selectedVersion;
+	}
+}
+
+bool NewInstanceDialog::isImported() const
+{
+	return ui->importBtn->isChecked();
+}
+
+void NewInstanceDialog::import(const InstancePtr &instance)
+{
+	selectedImportProvider()->import(currentCandidateIndex(), instance);
 }
 
 void NewInstanceDialog::on_btnChangeVersion_clicked()
@@ -221,6 +266,33 @@ void NewInstanceDialog::on_iconButton_clicked()
 void NewInstanceDialog::on_instNameTextBox_textChanged(const QString &arg1)
 {
 	updateDialogState();
+}
+
+void NewInstanceDialog::on_importProviderBox_currentIndexChanged()
+{
+	if (ui->importProviderBox->currentIndex() == -1)
+	{
+		ui->importCandidateBox->setModel(nullptr);
+	}
+	else
+	{
+		BaseImportProvider *provider = selectedImportProvider();
+		if (!m_importModels.contains(provider->name()))
+		{
+			m_importModels.insert(provider->name(), ResourceProxyModel::mixin<QIcon>(provider->candidatesModel()));
+		}
+		ui->importCandidateBox->setModel(m_importModels.value(provider->name()));
+	}
+}
+
+BaseImportProvider *NewInstanceDialog::selectedImportProvider() const
+{
+	return ui->importProviderBox->currentData(ImportProviderModel::PointerRole).value<BaseImportProvider *>();
+}
+QModelIndex NewInstanceDialog::currentCandidateIndex() const
+{
+	const QModelIndex proxyIndex = ui->importCandidateBox->model()->index(ui->importCandidateBox->currentIndex(), 0);
+	return m_importModels.value(selectedImportProvider()->name())->mapToSource(proxyIndex);
 }
 
 void NewInstanceDialog::on_modpackBtn_clicked()

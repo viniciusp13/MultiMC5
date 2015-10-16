@@ -10,6 +10,9 @@
 #include <pathmatcher/MultiMatcher.h>
 #include <FileSystem.h>
 
+#include "wonko/WonkoIndex.h"
+#include "wonko/WonkoVersionList.h"
+
 #define IBUS "@im=ibus"
 
 // all of this because keeping things compatible with deprecated old settings
@@ -78,9 +81,9 @@ QString MinecraftInstance::minecraftRoot() const
 		return mcDir.filePath();
 }
 
-std::shared_ptr< BaseVersionList > MinecraftInstance::versionList() const
+std::shared_ptr<BaseVersionList> MinecraftInstance::versionList() const
 {
-	return ENV.getVersionList("net.minecraft");
+	return ENV.wonkoIndex()->getListGuaranteed("net.minecraft");
 }
 
 QStringList MinecraftInstance::javaArguments() const

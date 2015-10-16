@@ -152,6 +152,16 @@ set(LOGIC_SOURCES
 	status/StatusChecker.h
 	status/StatusChecker.cpp
 
+	# Import
+	import/ImportProviderModel.cpp
+	import/ImportProviderModel.h
+	import/BaseImportProvider.cpp
+	import/BaseImportProvider.h
+	import/FTBImportProvider.cpp
+	import/FTBImportProvider.h
+	import/LegacyImportProvider.cpp
+	import/LegacyImportProvider.h
+
 	# Minecraft support
 	minecraft/OneSixUpdate.h
 	minecraft/OneSixUpdate.cpp
@@ -172,8 +182,6 @@ set(LOGIC_SOURCES
 	minecraft/JarMod.h
 	minecraft/MinecraftInstance.cpp
 	minecraft/MinecraftInstance.h
-	minecraft/MinecraftVersion.cpp
-	minecraft/MinecraftVersion.h
 	minecraft/NullProfileStrategy.h
 	minecraft/OneSixLibrary.cpp
 	minecraft/OneSixLibrary.h

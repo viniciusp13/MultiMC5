@@ -23,7 +23,6 @@
 #include "tasks/Task.h"
 #include "minecraft/VersionFilterData.h"
 
-class MinecraftVersion;
 class BaseInstance;
 class QuaZip;
 class Mod;
@@ -56,7 +55,6 @@ private:
 	std::shared_ptr<QNetworkReply> m_reply;
 
 	// target version, determined during this task
-	// MinecraftVersion *targetVersion;
 	QString lwjglURL;
 	QString lwjglVersion;
 

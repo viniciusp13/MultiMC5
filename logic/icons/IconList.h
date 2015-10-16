@@ -34,7 +34,7 @@ class MULTIMC_LOGIC_EXPORT IconList : public QAbstractListModel
 	Q_OBJECT
 public:
 	explicit IconList(QString builtinPath, QString path, QObject *parent = 0);
-	virtual ~IconList() {};
+	virtual ~IconList() {}
 
 	QIcon getIcon(QString key);
 	QIcon getBigIcon(QString key);

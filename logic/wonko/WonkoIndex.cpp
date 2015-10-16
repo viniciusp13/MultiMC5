@@ -83,6 +83,19 @@ WonkoVersionListPtr WonkoIndex::getList(const QString &uid) const
 {
 	return m_uids.value(uid, nullptr);
 }
+WonkoVersionListPtr WonkoIndex::getListGuaranteed(const QString &uid)
+{
+	if (!m_uids.contains(uid))
+	{
+		WonkoVersionListPtr list = std::make_shared<WonkoVersionList>(uid);
+		beginInsertRows(QModelIndex(), m_lists.size(), m_lists.size());
+		connectVersionList(m_lists.size(), list);
+		m_lists.append(list);
+		m_uids.insert(uid, list);
+		endInsertRows();
+	}
+	return m_uids.value(uid);
+}
 
 void WonkoIndex::merge(const Ptr &other)
 {

@@ -24,6 +24,9 @@ namespace Ui
 class NewInstanceDialog;
 }
 
+class ResourceProxyModel;
+using InstancePtr = std::shared_ptr<class BaseInstance>;
+
 class NewInstanceDialog : public QDialog
 {
 	Q_OBJECT
@@ -42,7 +45,10 @@ public:
 	QString instGroup() const;
 	QString iconKey() const;
 	QUrl modpackUrl() const;
-	BaseVersionPtr selectedVersion() const;
+	BaseVersionPtr selectedVersion();
+
+	bool isImported() const;
+	void import(const InstancePtr &instance);
 
 private
 slots:
@@ -50,6 +56,7 @@ slots:
 	void on_iconButton_clicked();
 	void on_modpackBtn_clicked();
 	void on_instNameTextBox_textChanged(const QString &arg1);
+	void on_importProviderBox_currentIndexChanged();
 
 private:
 	Ui::NewInstanceDialog *ui;
@@ -58,4 +65,8 @@ private:
 	BaseVersionPtr m_selectedVersion;
 	QString InstIconKey;
 	QString originalPlaceholderText;
+
+	QHash<QString, ResourceProxyModel *> m_importModels;
+	class BaseImportProvider *selectedImportProvider() const;
+	QModelIndex currentCandidateIndex() const;
 };

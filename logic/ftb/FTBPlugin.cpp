@@ -1,15 +1,19 @@
 #include "FTBPlugin.h"
-#include "FTBVersion.h"
-#include "LegacyFTBInstance.h"
-#include "OneSixFTBInstance.h"
-#include <BaseInstance.h>
-#include <icons/IconList.h>
-#include <InstanceList.h>
-#include <settings/INISettingsObject.h>
-#include <FileSystem.h>
-#include "QDebug"
+
+#include <QDebug>
 #include <QXmlStreamReader>
 #include <QRegularExpression>
+
+#include "LegacyFTBInstance.h"
+#include "OneSixFTBInstance.h"
+#include "BaseInstance.h"
+#include "icons/IconList.h"
+#include "InstanceList.h"
+#include "settings/INISettingsObject.h"
+#include "FileSystem.h"
+#include "wonko/WonkoIndex.h"
+#include "wonko/WonkoVersionList.h"
+#include "wonko/WonkoVersion.h"
 
 struct FTBRecord
 {
@@ -190,7 +194,7 @@ InstancePtr createInstance(SettingsObjectPtr globalSettings, QMap<QString, QStri
 
 	qDebug() << "Converting " << record.name << " as new.";
 
-	auto mcVersion = std::dynamic_pointer_cast<MinecraftVersion>(ENV.getVersion("net.minecraft", record.mcVersion));
+	auto mcVersion = ENV.wonkoIndex()->getListGuaranteed("net.minecraft")->version(record.mcVersion);
 	if (!mcVersion)
 	{
 		qCritical() << "Can't load instance " << record.instanceDir
@@ -208,7 +212,7 @@ InstancePtr createInstance(SettingsObjectPtr globalSettings, QMap<QString, QStri
 	auto m_settings = std::make_shared<INISettingsObject>(FS::PathCombine(record.instanceDir, "instance.cfg"));
 	m_settings->registerSetting("InstanceType", "Legacy");
 
-	if (mcVersion->usesLegacyLauncher())
+	if (false/*mcVersion->usesLegacyLauncher()*/)
 	{
 		m_settings->set("InstanceType", "LegacyFTB");
 		inst.reset(new LegacyFTBInstance(globalSettings, m_settings, record.instanceDir));

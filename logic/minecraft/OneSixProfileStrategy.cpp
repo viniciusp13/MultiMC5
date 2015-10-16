@@ -83,7 +83,7 @@ void OneSixProfileStrategy::loadDefaultBuiltinPatches()
 		auto mcJson = FS::PathCombine(m_instance->instanceRoot(), "patches" , "net.minecraft.json");
 		// load up the base minecraft patch
 		ProfilePatchPtr minecraftPatch;
-		if(QFile::exists(mcJson))
+		if (QFile::exists(mcJson))
 		{
 			auto file = ProfileUtils::parseJsonFile(QFileInfo(mcJson), false);
 			if(file->version.isEmpty())
@@ -93,11 +93,6 @@ void OneSixProfileStrategy::loadDefaultBuiltinPatches()
 			file->setVanilla(false);
 			file->setRevertible(true);
 			minecraftPatch = std::dynamic_pointer_cast<ProfilePatch>(file);
-		}
-		else
-		{
-			auto mcversion = ENV.getVersion("net.minecraft", m_instance->intendedVersionId());
-			minecraftPatch = std::dynamic_pointer_cast<ProfilePatch>(mcversion);
 		}
 		if (!minecraftPatch)
 		{

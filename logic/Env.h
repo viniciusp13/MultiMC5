@@ -44,9 +44,6 @@ public:
 	/// get a version list by name
 	std::shared_ptr<BaseVersionList> getVersionList(QString component);
 
-	/// get a version by list name and version name
-	std::shared_ptr<BaseVersion> getVersion(QString component, QString version);
-
 	void registerVersionList(QString name, std::shared_ptr<BaseVersionList> vlist);
 
 	std::shared_ptr<WonkoIndex> wonkoIndex();

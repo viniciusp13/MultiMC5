@@ -232,5 +232,17 @@
 		<file>32x32/looney.png</file>
 		<file>64x64/looney.png</file>
 		<file>256x256/looney.png</file>
+
+		<!-- FTB. Feed the Beast -->
+		<file>16x16/ftb.png</file>
+		<file>32x32/ftb.png</file>
+		<file>64x64/ftb.png</file>
+		<file>256x256/ftb.png</file>
+
+		<!-- Legacy, CC-BY-NC-ND, http://www.iconarchive.com/show/old-school-icons-by-babasse/panneau-de-configuration-old-school-icon.html -->
+		<file>16x16/legacy.png</file>
+		<file>32x32/legacy.png</file>
+		<file>64x64/legacy.png</file>
+		<file>256x256/legacy.png</file>
     </qresource>
 </RCC>

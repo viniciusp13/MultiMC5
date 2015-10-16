@@ -24,7 +24,6 @@
 #include "minecraft/VersionFilterData.h"
 #include <quazip.h>
 
-class MinecraftVersion;
 class OneSixInstance;
 
 class OneSixUpdate : public Task
