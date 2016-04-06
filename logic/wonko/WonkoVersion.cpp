@@ -46,11 +46,11 @@ QDateTime WonkoVersion::time() const
 
 std::unique_ptr<Task> WonkoVersion::remoteUpdateTask()
 {
-	return std::make_unique<WonkoVersionRemoteLoadTask>(this, this);
+	return std::unique_ptr<WonkoVersionRemoteLoadTask>(new WonkoVersionRemoteLoadTask(this, this));
 }
 std::unique_ptr<Task> WonkoVersion::localUpdateTask()
 {
-	return std::make_unique<WonkoVersionLocalLoadTask>(this, this);
+	return std::unique_ptr<WonkoVersionLocalLoadTask>(new WonkoVersionLocalLoadTask(this, this));
 }
 
 void WonkoVersion::merge(const std::shared_ptr<BaseWonkoEntity> &other)

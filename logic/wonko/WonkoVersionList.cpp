@@ -166,11 +166,11 @@ QHash<int, QByteArray> WonkoVersionList::roleNames() const
 
 std::unique_ptr<Task> WonkoVersionList::remoteUpdateTask()
 {
-	return std::make_unique<WonkoVersionListRemoteLoadTask>(this, this);
+	return std::unique_ptr<WonkoVersionListRemoteLoadTask>(new WonkoVersionListRemoteLoadTask(this, this));
 }
 std::unique_ptr<Task> WonkoVersionList::localUpdateTask()
 {
-	return std::make_unique<WonkoVersionListLocalLoadTask>(this, this);
+	return std::unique_ptr<WonkoVersionListLocalLoadTask>(new WonkoVersionListLocalLoadTask(this, this));
 }
 
 QString WonkoVersionList::localFilename() const
