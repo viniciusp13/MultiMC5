@@ -8,6 +8,7 @@
 #include "pages/global/ExternalToolsPage.h"
 #include "pages/global/AccountListPage.h"
 #include "pages/global/PasteEEPage.h"
+#include "pages/global/WonkoPage.h"
 
 #include <iostream>
 #include <QDir>
@@ -24,10 +25,8 @@
 #include "auth/MojangAccountList.h"
 #include "icons/IconList.h"
 #include "minecraft/LwjglVersionList.h"
-#include "minecraft/MinecraftVersionList.h"
-#include "liteloader/LiteLoaderVersionList.h"
 
-#include "forge/ForgeVersionList.h"
+#include "wonko/WonkoIndex.h"
 
 #include "net/HttpMetaCache.h"
 #include "net/URLConstants.h"
@@ -51,6 +50,7 @@
 #include "handlers/WebResourceHandler.h"
 
 #include "ftb/FTBPlugin.h"
+#include "WonkoGui.h"
 
 #include <Commandline.h>
 #include <FileSystem.h>
@@ -274,6 +274,13 @@ MultiMC::MultiMC(int &argc, char **argv, bool test_mode) : QApplication(argc, ar
 	{
 		tool->registerSettings(m_settings);
 	}
+
+	ENV.setWonkoRootUrl(BuildConfig.WONKO_ROOT_URL);
+	// FIXME: move elsewhere, this is so bad that it hurts
+	Wonko::ensureIndexLoaded(nullptr);
+	Wonko::ensureVersionListLoaded("net.minecraft", nullptr);
+	Wonko::ensureVersionListLoaded("org.lwjgl", nullptr);
+	Wonko::ensureVersionLoaded("org.lwjgl", "2.9.1", nullptr);
 
 	connect(this, SIGNAL(aboutToQuit()), SLOT(onExit()));
 	m_status = MultiMC::Initialized;
@@ -550,6 +557,7 @@ void MultiMC::initGlobalSettings(bool test_mode)
 		m_globalSettingsProvider->addPage<ExternalToolsPage>();
 		m_globalSettingsProvider->addPage<AccountListPage>();
 		m_globalSettingsProvider->addPage<PasteEEPage>();
+		m_globalSettingsProvider->addPage<WonkoPage>();
 	}
 }
 
@@ -561,36 +569,6 @@ std::shared_ptr<LWJGLVersionList> MultiMC::lwjgllist()
 		ENV.registerVersionList("org.lwjgl.legacy", m_lwjgllist);
 	}
 	return m_lwjgllist;
-}
-
-std::shared_ptr<ForgeVersionList> MultiMC::forgelist()
-{
-	if (!m_forgelist)
-	{
-		m_forgelist.reset(new ForgeVersionList());
-		ENV.registerVersionList("net.minecraftforge", m_forgelist);
-	}
-	return m_forgelist;
-}
-
-std::shared_ptr<LiteLoaderVersionList> MultiMC::liteloaderlist()
-{
-	if (!m_liteloaderlist)
-	{
-		m_liteloaderlist.reset(new LiteLoaderVersionList());
-		ENV.registerVersionList("com.mumfrey.liteloader", m_liteloaderlist);
-	}
-	return m_liteloaderlist;
-}
-
-std::shared_ptr<MinecraftVersionList> MultiMC::minecraftlist()
-{
-	if (!m_minecraftlist)
-	{
-		m_minecraftlist.reset(new MinecraftVersionList());
-		ENV.registerVersionList("net.minecraft", m_minecraftlist);
-	}
-	return m_minecraftlist;
 }
 
 std::shared_ptr<JavaVersionList> MultiMC::javalist()

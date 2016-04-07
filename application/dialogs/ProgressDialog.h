@@ -35,7 +35,7 @@ public:
 
 	void updateSize();
 
-	int execWithTask(Task *task);
+	[[deprecated]] int execWithTask(Task *task);
 	int execWithTask(std::unique_ptr<Task> &&task);
 	int execWithTask(std::unique_ptr<Task> &task);
 

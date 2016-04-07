@@ -22,10 +22,13 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QDataStream>
+#include <QEventLoop>
 #include <JlCompress.h>
 
 #include "BaseInstance.h"
-#include "minecraft/MinecraftVersionList.h"
+#include "wonko/WonkoVersionList.h"
+#include "wonko/WonkoVersion.h"
+#include "wonko/WonkoIndex.h"
 #include "minecraft/MinecraftProfile.h"
 #include "minecraft/OneSixLibrary.h"
 #include "minecraft/OneSixInstance.h"
@@ -40,6 +43,22 @@ OneSixUpdate::OneSixUpdate(OneSixInstance *inst, QObject *parent) : Task(parent)
 {
 }
 
+bool OneSixUpdate::run(const std::unique_ptr<Task> &task)
+{
+	if (task->isFinished())
+	{
+		return task->successful();
+	}
+	connect(task.get(), &Task::progress, this, &OneSixUpdate::progress);
+	connect(task.get(), &Task::status, this, &OneSixUpdate::setStatus);
+
+	QEventLoop loop;
+	connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+	QMetaObject::invokeMethod(task.get(), "start", Qt::QueuedConnection); // < need to wait until the loop is started
+	loop.exec();
+	return task->successful();
+}
+
 void OneSixUpdate::executeTask()
 {
 	// Make directories
@@ -50,39 +69,79 @@ void OneSixUpdate::executeTask()
 		return;
 	}
 
-	// Get a pointer to the version object that corresponds to the instance's version.
-	targetVersion = std::dynamic_pointer_cast<MinecraftVersion>(
-		ENV.getVersion("net.minecraft", m_inst->intendedVersionId()));
-	if (targetVersion == nullptr)
+	// this is here for backwards compatibility, old instances don't have the minecraft/lwjgl patches
+	// included normally, so we need to add them if they aren't already there.
+	// it should be possible to just remove the next two lines and the following if after a year or two,
+	// and instead have an error message telling people to do something
+	const bool hasMinecraft = !!m_inst->getMinecraftProfile()->versionPatch("net.minecraft");
+	const bool hasLwjgl = !!m_inst->getMinecraftProfile()->versionPatch("org.lwjgl");
+	if (!hasMinecraft || !hasLwjgl)
 	{
-		// don't do anything if it was invalid
-		emitFailed(tr("The specified Minecraft version is invalid. Choose a different one."));
-		return;
-	}
-	if (m_inst->providesVersionFile() || !targetVersion->needsUpdate())
-	{
-		qDebug() << "Instance either provides a version file or doesn't need an update.";
-		jarlibStart();
-		return;
-	}
-	versionUpdateTask = std::dynamic_pointer_cast<MinecraftVersionList>(ENV.getVersionList("net.minecraft"))->createUpdateTask(m_inst->intendedVersionId());
-	if (!versionUpdateTask)
-	{
-		qDebug() << "Didn't spawn an update task.";
-		jarlibStart();
-		return;
-	}
-	connect(versionUpdateTask.get(), SIGNAL(succeeded()), SLOT(jarlibStart()));
-	connect(versionUpdateTask.get(), &NetJob::failed, this, &OneSixUpdate::versionUpdateFailed);
-	connect(versionUpdateTask.get(), SIGNAL(progress(qint64, qint64)),
-			SIGNAL(progress(qint64, qint64)));
-	setStatus(tr("Getting the version files from Mojang..."));
-	versionUpdateTask->start();
-}
+		if (!ENV.wonkoIndex()->isLocalLoaded())
+		{
+			run(ENV.wonkoIndex()->localUpdateTask());
+		}
+		if ((!ENV.wonkoIndex()->hasUid("net.minecraft") || !ENV.wonkoIndex()->hasUid("org.lwjgl")) && !ENV.wonkoIndex()->isRemoteLoaded())
+		{
+			run(ENV.wonkoIndex()->remoteUpdateTask());
+		}
 
-void OneSixUpdate::versionUpdateFailed(QString reason)
-{
-	emitFailed(reason);
+		if (!hasMinecraft)
+		{
+			WonkoVersionListPtr mcList = ENV.wonkoIndex()->getList("net.minecraft");
+			if (!mcList->isLocalLoaded())
+			{
+				if (!run(mcList->localUpdateTask()) && !run(mcList->remoteUpdateTask()))
+				{
+					emitFailed(tr("Unable to load versions list for Minecraft"));
+					return;
+				}
+			}
+			WonkoVersionPtr version = mcList->getVersion(m_inst->intendedVersionId());
+			if (!version->isLocalLoaded())
+			{
+				if (!run(version->localUpdateTask()) && !run(version->remoteUpdateTask()))
+				{
+					emitFailed(tr("Unable to load the wanted version of Minecraft"));
+				}
+			}
+			m_inst->installWonkoVersion(version);
+		}
+		if (!hasLwjgl)
+		{
+			WonkoVersionListPtr lwjglList = ENV.wonkoIndex()->getList("org.lwjgl");
+			if (!lwjglList->isLocalLoaded())
+			{
+				if (!run(lwjglList->localUpdateTask()) && !run(lwjglList->remoteUpdateTask()))
+				{
+					emitFailed(tr("Unable to load versions list for LWJGL"));
+					return;
+				}
+			}
+			WonkoVersionPtr version = lwjglList->getVersion("2.9.1");
+			if (!version->isLocalLoaded())
+			{
+				if (!run(version->localUpdateTask()) && !run(version->remoteUpdateTask()))
+				{
+					emitFailed(tr("Unable to load the default version of LWJGL"));
+				}
+			}
+			m_inst->installWonkoVersion(version);
+		}
+
+		try
+		{
+			m_inst->reloadProfile();
+		}
+		catch (Exception &e)
+		{
+			emitFailed(e.cause());
+			return;
+		}
+	}
+
+	// step 4: start the actual update process
+	jarlibStart();
 }
 
 void OneSixUpdate::assetIndexStart()
@@ -212,75 +271,113 @@ void OneSixUpdate::jarlibStart()
 		jarlibDownloadJob.reset(job);
 	}
 
-	auto libs = version->getActiveNativeLibs();
-	libs.append(version->getActiveNormalLibs());
-
-	auto metacache = ENV.metacache();
-	QList<ForgeXzDownloadPtr> ForgeLibs;
-	QList<std::shared_ptr<OneSixLibrary>> brokenLocalLibs;
-
-	for (auto lib : libs)
+	// jarmods
 	{
-		if (lib->hint() == "local")
-		{
-			if (!lib->filesExist(m_inst->librariesPath()))
-				brokenLocalLibs.append(lib);
-			continue;
-		}
+		QVector<JarmodPtr> brokenJarmods;
 
-		QString raw_storage = lib->storageSuffix();
-		QString raw_dl = lib->url();
-
-		auto f = [&](QString storage, QString dl)
+		for (const JarmodPtr &jarmod : version->jarMods)
 		{
-			auto entry = metacache->resolveEntry("libraries", storage);
-			if (entry->stale)
+			if (jarmod->absoluteUrl.isEmpty() && !QDir(inst->jarModsDir()).exists(jarmod->name))
 			{
-				if (lib->hint() == "forge-pack-xz")
+				brokenJarmods.append(jarmod);
+			}
+			else
+			{
+				const QUrl url(jarmod->absoluteUrl);
+				auto entry = ENV.metacache()->resolveEntry("jarmods", url.toString());
+				if (entry->stale)
 				{
-					ForgeLibs.append(ForgeXzDownload::make(storage, entry));
-				}
-				else
-				{
-					jarlibDownloadJob->addNetAction(CacheDownload::make(dl, entry));
+					jarlibDownloadJob->addNetAction(CacheDownload::make(url, entry));
 				}
 			}
-		};
-		if (raw_storage.contains("${arch}"))
-		{
-			QString cooked_storage = raw_storage;
-			QString cooked_dl = raw_dl;
-			f(cooked_storage.replace("${arch}", "32"), cooked_dl.replace("${arch}", "32"));
-			cooked_storage = raw_storage;
-			cooked_dl = raw_dl;
-			f(cooked_storage.replace("${arch}", "64"), cooked_dl.replace("${arch}", "64"));
 		}
-		else
+
+		if (!brokenJarmods.isEmpty())
 		{
-			f(raw_storage, raw_dl);
+			jarlibDownloadJob.reset();
+			QStringList failed;
+			for (const JarmodPtr &broken : brokenJarmods)
+			{
+				failed.append(broken->originalName);
+			}
+			emitFailed(tr("The following jarmods are neither available locally, nor is there any information available on how to fetch them: %1")
+					   .arg(failed.join('\n')));
+			return;
 		}
 	}
-	if (!brokenLocalLibs.empty())
+
+	// libraries
 	{
-		jarlibDownloadJob.reset();
-		QStringList failed;
-		for (auto brokenLib : brokenLocalLibs)
+		auto libs = version->getActiveNativeLibs();
+		libs.append(version->getActiveNormalLibs());
+
+		auto metacache = ENV.metacache();
+		QList<ForgeXzDownloadPtr> ForgeLibs;
+		QList<std::shared_ptr<OneSixLibrary>> brokenLocalLibs;
+
+		for (auto lib : libs)
 		{
-			failed.append(brokenLib->files());
+			if (lib->hint() == "local")
+			{
+				if (!lib->filesExist(m_inst->librariesPath()))
+					brokenLocalLibs.append(lib);
+				continue;
+			}
+
+			QString raw_storage = lib->storageSuffix();
+			QString raw_dl = lib->url();
+
+			auto f = [&](QString storage, QString dl)
+			{
+				auto entry = metacache->resolveEntry("libraries", storage);
+				if (entry->stale)
+				{
+					if (lib->hint() == "forge-pack-xz")
+					{
+						ForgeLibs.append(ForgeXzDownload::make(storage, entry));
+					}
+					else
+					{
+						jarlibDownloadJob->addNetAction(CacheDownload::make(dl, entry));
+					}
+				}
+			};
+			if (raw_storage.contains("${arch}"))
+			{
+				QString cooked_storage = raw_storage;
+				QString cooked_dl = raw_dl;
+				f(cooked_storage.replace("${arch}", "32"), cooked_dl.replace("${arch}", "32"));
+				cooked_storage = raw_storage;
+				cooked_dl = raw_dl;
+				f(cooked_storage.replace("${arch}", "64"), cooked_dl.replace("${arch}", "64"));
+			}
+			else
+			{
+				f(raw_storage, raw_dl);
+			}
 		}
-		QString failed_all = failed.join("\n");
-		emitFailed(tr("Some libraries marked as 'local' are missing their jar "
-					  "files:\n%1\n\nYou'll have to correct this problem manually. If this is "
-					  "an externally tracked instance, make sure to run it at least once "
-					  "outside of MultiMC.").arg(failed_all));
-		return;
-	}
-	// TODO: think about how to propagate this from the original json file... or IF AT ALL
-	QString forgeMirrorList = "http://files.minecraftforge.net/mirror-brand.list";
-	if (!ForgeLibs.empty())
-	{
-		jarlibDownloadJob->addNetAction(
-			ForgeMirrors::make(ForgeLibs, jarlibDownloadJob, forgeMirrorList));
+		if (!brokenLocalLibs.empty())
+		{
+			jarlibDownloadJob.reset();
+			QStringList failed;
+			for (auto brokenLib : brokenLocalLibs)
+			{
+				failed.append(brokenLib->files());
+			}
+			QString failed_all = failed.join("\n");
+			emitFailed(tr("Some libraries marked as 'local' are missing their jar "
+						  "files:\n%1\n\nYou'll have to correct this problem manually. If this is "
+						  "an externally tracked instance, make sure to run it at least once "
+						  "outside of MultiMC.").arg(failed_all));
+			return;
+		}
+		// TODO: think about how to propagate this from the original json file... or IF AT ALL
+		QString forgeMirrorList = "http://files.minecraftforge.net/mirror-brand.list";
+		if (!ForgeLibs.empty())
+		{
+			jarlibDownloadJob->addNetAction(
+				ForgeMirrors::make(ForgeLibs, jarlibDownloadJob, forgeMirrorList));
+		}
 	}
 
 	connect(jarlibDownloadJob.get(), SIGNAL(succeeded()), SLOT(jarlibFinished()));
@@ -295,6 +392,26 @@ void OneSixUpdate::jarlibFinished()
 {
 	OneSixInstance *inst = (OneSixInstance *)m_inst;
 	std::shared_ptr<MinecraftProfile> version = inst->getMinecraftProfile();
+
+	// put jarmods into the instance
+	try
+	{
+		for (const JarmodPtr &jarmod : version->jarMods)
+		{
+			auto entry = ENV.metacache()->resolveEntry("jarmods", QUrl(jarmod->absoluteUrl).toString());
+			const QString dest = QDir(inst->jarModsDir()).absoluteFilePath(jarmod->name);
+
+			if (QFile::exists(dest))
+			{
+				FS::remove(dest);
+			}
+			FS::copyFile(entry->getFullPath(), dest);
+		}
+	}
+	catch (FS::FileSystemException &e)
+	{
+		emitFailed(tr("Unable to copy some jarmods into their final destinations: %1").arg(e.cause()));
+	}
 
 	if (version->traits.contains("legacyFML"))
 	{

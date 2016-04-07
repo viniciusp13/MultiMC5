@@ -78,11 +78,11 @@ QVariant WonkoIndex::headerData(int section, Qt::Orientation orientation, int ro
 
 std::unique_ptr<Task> WonkoIndex::remoteUpdateTask()
 {
-	return std::unique_ptr<WonkoIndexRemoteLoadTask>(new WonkoIndexRemoteLoadTask(this, this));
+	return std::make_unique<WonkoIndexRemoteLoadTask>(this, this);
 }
 std::unique_ptr<Task> WonkoIndex::localUpdateTask()
 {
-	return std::unique_ptr<WonkoIndexLocalLoadTask>(new WonkoIndexLocalLoadTask(this, this));
+	return std::make_unique<WonkoIndexLocalLoadTask>(this, this);
 }
 
 QJsonObject WonkoIndex::serialized() const

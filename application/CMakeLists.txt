@@ -118,7 +118,7 @@ set(DIRS ${QT_LIBS_DIR} ${QT_LIBEXECS_DIR} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${C
 ################################ FILES ################################
 
 ######## Sources and headers ########
-SET(MULTIMC_SOURCES
+set(MULTIMC_SOURCES
 	# Application base
 	main.cpp
 	MultiMC.h

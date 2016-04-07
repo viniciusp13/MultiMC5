@@ -36,16 +36,15 @@
 #include <QUrl>
 
 #include "minecraft/MinecraftProfile.h"
-#include "forge/ForgeVersionList.h"
-#include "forge/ForgeInstaller.h"
-#include "liteloader/LiteLoaderVersionList.h"
-#include "liteloader/LiteLoaderInstaller.h"
 #include "auth/MojangAccountList.h"
 #include "minecraft/Mod.h"
-#include <minecraft/MinecraftVersion.h>
-#include <minecraft/MinecraftVersionList.h>
+#include "wonko/WonkoIndex.h"
+#include "wonko/WonkoVersionList.h"
+#include "wonko/WonkoVersion.h"
 #include "icons/IconList.h"
+#include "Env.h"
 #include "Exception.h"
+#include "WonkoGui.h"
 
 QIcon VersionPage::icon() const
 {
@@ -281,35 +280,11 @@ int VersionPage::doUpdate()
 
 void VersionPage::on_forgeBtn_clicked()
 {
-	VersionSelectDialog vselect(MMC->forgelist().get(), tr("Select Forge version"), this);
-	vselect.setExactFilter(BaseVersionList::ParentGameVersionRole, m_inst->currentVersionId());
-	vselect.setEmptyString(tr("No Forge versions are currently available for Minecraft ") +
-						   m_inst->currentVersionId());
-	vselect.setEmptyErrorString(tr("Couldn't load or download the Forge version lists!"));
-	if (vselect.exec() && vselect.selectedVersion())
-	{
-		ProgressDialog dialog(this);
-		dialog.execWithTask(
-			ForgeInstaller().createInstallTask(m_inst, vselect.selectedVersion(), this));
-		preselect(m_version->rowCount(QModelIndex())-1);
-	}
+	attemptResourceInstall("net.minecraftforge", "Forge");
 }
-
 void VersionPage::on_liteloaderBtn_clicked()
 {
-	VersionSelectDialog vselect(MMC->liteloaderlist().get(), tr("Select LiteLoader version"),
-								this);
-	vselect.setExactFilter(BaseVersionList::ParentGameVersionRole, m_inst->currentVersionId());
-	vselect.setEmptyString(tr("No LiteLoader versions are currently available for Minecraft ") +
-						   m_inst->currentVersionId());
-	vselect.setEmptyErrorString(tr("Couldn't load or download the LiteLoader version lists!"));
-	if (vselect.exec() && vselect.selectedVersion())
-	{
-		ProgressDialog dialog(this);
-		dialog.execWithTask(
-			LiteLoaderInstaller().createInstallTask(m_inst, vselect.selectedVersion(), this));
-		preselect(m_version->rowCount(QModelIndex())-1);
-	}
+	attemptResourceInstall("com.mumfrey.liteloader", "LiteLoader");
 }
 
 void VersionPage::versionCurrent(const QModelIndex &current, const QModelIndex &previous)
@@ -370,6 +345,35 @@ void VersionPage::onGameUpdateError(QString error)
 								 QMessageBox::Warning)->show();
 }
 
+void VersionPage::attemptResourceInstall(const QString &uid, const QString &name)
+{
+	if (Wonko::ensureVersionListLoaded(uid, this) == nullptr)
+	{
+		QMessageBox::critical(this, tr("Error"), tr("An internal error occured"));
+		return;
+	}
+
+	VersionSelectDialog vselect(ENV.wonkoIndex()->getList(uid).get(), tr("Select %1 version").arg(name), this);
+	vselect.setExactFilter(BaseVersionList::ParentGameVersionRole, m_inst->currentVersionId());
+	vselect.setEmptyString(tr("No %1 versions are currently available for Minecraft %2").arg(name, m_inst->currentVersionId()));
+	vselect.setEmptyErrorString(tr("Couldn't load or download the %1 version lists!").arg(name));
+	if (vselect.exec() == QDialog::Accepted && vselect.selectedVersion())
+	{
+		const WonkoVersionPtr wversion = std::dynamic_pointer_cast<WonkoVersion>(vselect.selectedVersion());
+		if (!wversion->isLocalLoaded())
+		{
+			ProgressDialog(this).execWithTask(wversion->localUpdateTask());
+		}
+		if (!wversion->isRemoteLoaded() && ProgressDialog(this).execWithTask(wversion->remoteUpdateTask()) == QDialog::Rejected)
+		{
+			return;
+		}
+		m_inst->installWonkoVersion(wversion);
+		m_inst->reloadProfile();
+		preselect(m_version->rowCount(QModelIndex()) - 1);
+	}
+}
+
 ProfilePatchPtr VersionPage::current()
 {
 	auto row = currentRow();
@@ -397,15 +401,7 @@ void VersionPage::on_customizeBtn_clicked()
 		return;
 	}
 	//HACK HACK remove, this is dumb
-	auto patch = m_version->versionPatch(version);
-	auto mc = std::dynamic_pointer_cast<MinecraftVersion>(patch);
-	if(mc && mc->needsUpdate())
-	{
-		if(!doUpdate())
-		{
-			return;
-		}
-	}
+	Wonko::ensureVersionLoaded("net.minecraft", m_inst->intendedVersionId(), this);
 	if(!m_version->customize(version))
 	{
 		// TODO: some error box here
@@ -437,15 +433,7 @@ void VersionPage::on_revertBtn_clicked()
 	{
 		return;
 	}
-	auto mcraw = MMC->minecraftlist()->findVersion(m_inst->intendedVersionId());
-	auto mc = std::dynamic_pointer_cast<MinecraftVersion>(mcraw);
-	if(mc && mc->needsUpdate())
-	{
-		if(!doUpdate())
-		{
-			return;
-		}
-	}
+	Wonko::ensureVersionLoaded("net.minecraft", m_inst->intendedVersionId(), this);
 	if(!m_version->revertToBase(version))
 	{
 		// TODO: some error box here

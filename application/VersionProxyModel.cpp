@@ -20,17 +20,17 @@ public:
 		const auto &filters = m_parent->filters();
 		for (auto it = filters.begin(); it != filters.end(); ++it)
 		{
-			auto role = it.key();
-			auto idx = sourceModel()->index(source_row, 0, source_parent);
-			auto data = sourceModel()->data(idx, role);
+			const BaseVersionList::ModelRoles role = it.key();
+			const QModelIndex idx = sourceModel()->index(source_row, 0, source_parent);
+			const QVariant data = idx.data(role);
 
 			switch(role)
 			{
 				case BaseVersionList::ParentGameVersionRole:
 				case BaseVersionList::VersionIdRole:
 				{
-					auto versionString = data.toString();
-					if(it.value().exact)
+					const QString versionString = data.toString();
+					if (it.value().exact)
 					{
 						return versionString == it.value().string;
 					}
@@ -58,6 +58,7 @@ public:
 		}
 		return true;
 	}
+
 private:
 	VersionProxyModel *m_parent;
 };
