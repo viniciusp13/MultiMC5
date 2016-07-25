@@ -97,7 +97,6 @@ add_subdirectory(libraries/javacheck) # java compatibility checker
 add_subdirectory(libraries/xz-embedded) # xz compression
 add_subdirectory(libraries/pack200) # java pack200 compression
 add_subdirectory(libraries/rainbow) # Qt extension for colors
-add_subdirectory(libraries/iconfix) # fork of Qt's QIcon loader
 
 ############################### Built Artifacts ###############################
 

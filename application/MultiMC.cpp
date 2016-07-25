@@ -40,7 +40,7 @@
 #include "tools/JVisualVM.h"
 #include "tools/MCEditTool.h"
 
-#include <xdgicon.h>
+#include <QIcon>
 #include "settings/INISettingsObject.h"
 #include "settings/Setting.h"
 
@@ -941,12 +941,12 @@ FAILED:
 
 void MultiMC::setIconTheme(const QString& name)
 {
-	XdgIcon::setThemeName(name);
+	QIcon::setThemeName(name);
 }
 
 QIcon MultiMC::getThemedIcon(const QString& name)
 {
-	return XdgIcon::fromTheme(name);
+	return QIcon::fromTheme(name);
 }
 
 void MultiMC::onExit()

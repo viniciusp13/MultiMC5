@@ -1,5 +1,5 @@
 #include "IconResourceHandler.h"
-#include <xdgicon.h>
+#include <QIcon>
 
 #include <QDir>
 #include <QDebug>
@@ -33,5 +33,5 @@ void IconResourceHandler::init(std::shared_ptr<ResourceHandler> &ptr)
 
 QVariant IconResourceHandler::get() const
 {
-	return XdgIcon::fromTheme(m_key);
+	return QIcon::fromTheme(m_key);
 }
