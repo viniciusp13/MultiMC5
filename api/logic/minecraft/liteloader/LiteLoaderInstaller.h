@@ -18,7 +18,7 @@
 #include <QString>
 #include <QMap>
 
-#include "BaseInstaller.h"
+#include "minecraft/onesix/BaseInstaller.h"
 #include "LiteLoaderVersionList.h"
 
 #include "multimc_logic_export.h"

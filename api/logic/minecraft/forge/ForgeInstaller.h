@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "BaseInstaller.h"
+#include "minecraft/onesix/BaseInstaller.h"
 
 #include <QString>
 #include <memory>

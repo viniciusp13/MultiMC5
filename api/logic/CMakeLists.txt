@@ -4,8 +4,6 @@ include (UnitTest)
 
 set(CORE_SOURCES
 	# LOGIC - Base classes and infrastructure
-	BaseInstaller.h
-	BaseInstaller.cpp
 	BaseVersionList.h
 	BaseVersionList.cpp
 	InstanceList.h
@@ -194,6 +192,8 @@ set(MINECRAFT_SOURCES
 	minecraft/auth/flows/RefreshTask.cpp
 	minecraft/auth/flows/ValidateTask.h
 	minecraft/auth/flows/ValidateTask.cpp
+	minecraft/onesix/BaseInstaller.h
+	minecraft/onesix/BaseInstaller.cpp
 	minecraft/onesix/OneSixUpdate.h
 	minecraft/onesix/OneSixUpdate.cpp
 	minecraft/onesix/OneSixInstance.h
