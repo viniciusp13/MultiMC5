@@ -23,11 +23,11 @@ public:
 };
 
 /// @throw FileSystemException
-void write(const QJsonDocument &doc, const QString &filename);
+MULTIMC_LOGIC_EXPORT void write(const QJsonDocument &doc, const QString &filename);
 /// @throw FileSystemException
-void write(const QJsonObject &object, const QString &filename);
+MULTIMC_LOGIC_EXPORT void write(const QJsonObject &object, const QString &filename);
 /// @throw FileSystemException
-void write(const QJsonArray &array, const QString &filename);
+MULTIMC_LOGIC_EXPORT void write(const QJsonArray &array, const QString &filename);
 
 QByteArray toBinary(const QJsonObject &obj);
 QByteArray toBinary(const QJsonArray &array);
@@ -45,8 +45,8 @@ MULTIMC_LOGIC_EXPORT QJsonArray requireArray(const QJsonDocument &doc, const QSt
 
 /////////////////// WRITING ////////////////////
 
-void writeString(QJsonObject & to, const QString &key, const QString &value);
-void writeStringList(QJsonObject & to, const QString &key, const QStringList &values);
+MULTIMC_LOGIC_EXPORT void writeString(QJsonObject & to, const QString &key, const QString &value);
+MULTIMC_LOGIC_EXPORT void writeStringList(QJsonObject & to, const QString &key, const QStringList &values);
 
 template<typename T>
 QJsonValue toJson(const T &t)

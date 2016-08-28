@@ -19,7 +19,9 @@
 #include <launch/LoggedProcess.h>
 #include <java/JavaChecker.h>
 
-class CheckJava: public LaunchStep
+#include "multimc_logic_export.h"
+
+class MULTIMC_LOGIC_EXPORT CheckJava: public LaunchStep
 {
 	Q_OBJECT
 public:

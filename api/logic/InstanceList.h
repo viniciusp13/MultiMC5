@@ -20,6 +20,7 @@
 #include <QSet>
 
 #include "BaseInstance.h"
+#include "BaseInstanceProvider.h"
 
 #include "multimc_logic_export.h"
 
@@ -31,8 +32,6 @@ class MULTIMC_LOGIC_EXPORT InstanceList : public QAbstractListModel
 	Q_OBJECT
 private:
 	void loadGroupList(QMap<QString, QString> &groupList);
-	void suspendGroupSaving();
-	void resumeGroupSaving();
 
 public slots:
 	void saveGroupList();
@@ -145,16 +144,6 @@ public:
 	InstCreateError copyInstance(InstancePtr &newInstance, InstancePtr &oldInstance,
 								 const QString &instDir, bool copySaves);
 
-	/*!
-	 * \brief Loads an instance from the given directory.
-	 * Checks the instance's INI file to figure out what the instance's type is first.
-	 * \param inst Pointer to store the loaded instance in.
-	 * \param instDir The instance's directory.
-	 * \return An InstLoadError error code.
-	 * - NotAnInstance if the given instance directory isn't a valid instance.
-	 */
-	InstLoadError loadInstance(InstancePtr &inst, const QString &instDir);
-
 signals:
 	void dataIsInvalid();
 
@@ -179,9 +168,8 @@ public:
 
 protected:
 	QString m_instDir;
+	QList<std::shared_ptr<BaseInstanceProvider>> m_instanceProviders;
 	QList<InstancePtr> m_instances;
 	QSet<QString> m_groups;
 	SettingsObjectPtr m_globalSettings;
-	bool suspendedGroupSave = false;
-	bool queuedGroupSave = false;
 };

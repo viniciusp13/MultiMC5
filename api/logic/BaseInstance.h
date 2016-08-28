@@ -22,10 +22,9 @@
 #include <QProcess>
 
 #include "settings/SettingsObject.h"
-
+#include "auth/BaseAuthSession.h"
 #include "settings/INIFile.h"
 #include "BaseVersionList.h"
-#include "minecraft/auth/MojangAccount.h"
 #include "launch/MessageLevel.h"
 #include "pathmatcher/IPathMatcher.h"
 
@@ -217,7 +216,7 @@ public:
 	/**
 	 * 'print' a verbose desription of the instance into a QStringList
 	 */
-	virtual QStringList verboseDescription(AuthSessionPtr session) = 0;
+	virtual QStringList verboseDescription() = 0;
 
 signals:
 	/*!

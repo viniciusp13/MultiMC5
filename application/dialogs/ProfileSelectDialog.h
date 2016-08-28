@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "minecraft/auth/MojangAccountList.h"
+#include <auth/MojangAccountList.h>
 
 namespace Ui
 {

@@ -17,7 +17,7 @@
 
 #include <QWidget>
 
-#include "minecraft/onesix/OneSixInstance.h"
+#include <onesix/OneSixInstance.h>
 #include "BasePage.h"
 
 namespace Ui

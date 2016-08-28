@@ -20,16 +20,16 @@
 
 #include <QDebug>
 
-#include "net/NetJob.h"
-#include "net/URLConstants.h"
-#include "Env.h"
+#include <net/NetJob.h>
+#include <net/URLConstants.h>
+#include <Env.h>
 
 #include "dialogs/ProgressDialog.h"
 #include "dialogs/LoginDialog.h"
 #include "dialogs/CustomMessageBox.h"
 #include "dialogs/SkinUploadDialog.h"
-#include "tasks/Task.h"
-#include "minecraft/auth/YggdrasilTask.h"
+#include <tasks/Task.h>
+#include <auth/YggdrasilTask.h>
 
 #include "MultiMC.h"
 

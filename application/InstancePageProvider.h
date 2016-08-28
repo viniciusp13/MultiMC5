@@ -1,6 +1,6 @@
 #pragma once
-#include "minecraft/onesix/OneSixInstance.h"
-#include "minecraft/legacy/LegacyInstance.h"
+#include <onesix/OneSixInstance.h>
+#include <legacy/LegacyInstance.h>
 #include <FileSystem.h>
 #include "pages/BasePage.h"
 #include "pages/LogPage.h"

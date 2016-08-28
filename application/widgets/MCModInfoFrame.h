@@ -16,7 +16,7 @@
 #pragma once
 
 #include <QFrame>
-#include "minecraft/Mod.h"
+#include <Mod.h>
 
 namespace Ui
 {

@@ -11,7 +11,6 @@ class QNetworkAccessManager;
 class HttpMetaCache;
 class BaseVersionList;
 class BaseVersion;
-class WonkoIndex;
 
 #if defined(ENV)
 	#undef ENV
@@ -51,16 +50,9 @@ public:
 
 	void registerIconList(std::shared_ptr<IIconList> iconlist);
 
-	std::shared_ptr<WonkoIndex> wonkoIndex();
-
-	QString wonkoRootUrl() const { return m_wonkoRootUrl; }
-	void setWonkoRootUrl(const QString &url) { m_wonkoRootUrl = url; }
-
 protected:
 	std::shared_ptr<QNetworkAccessManager> m_qnam;
 	std::shared_ptr<HttpMetaCache> m_metacache;
 	std::shared_ptr<IIconList> m_iconlist;
 	QMap<QString, std::shared_ptr<BaseVersionList>> m_versionLists;
-	std::shared_ptr<WonkoIndex> m_wonkoIndex;
-	QString m_wonkoRootUrl;
 };

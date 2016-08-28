@@ -3,7 +3,7 @@
 #include <QString>
 #include <QFileInfo>
 #include <QSet>
-#include "minecraft/Mod.h"
+//#include "minecraft/Mod.h"
 #include "SeparatorPrefixTree.h"
 #include <functional>
 
@@ -47,7 +47,7 @@ namespace MMCZip
 	/**
 	 * take a source jar, add mods to it, resulting in target jar
 	 */
-	bool MULTIMC_LOGIC_EXPORT createModdedJar(QString sourceJarPath, QString targetJarPath, const QList<Mod>& mods);
+	//bool MULTIMC_LOGIC_EXPORT createModdedJar(QString sourceJarPath, QString targetJarPath, const QList<Mod>& mods);
 
 	/**
 	 * Extract a whole archive.

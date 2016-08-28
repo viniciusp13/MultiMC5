@@ -20,33 +20,33 @@
 #include <QDebug>
 
 #include "InstanceList.h"
-#include <minecraft/auth/MojangAccountList.h>
+#include <auth/MojangAccountList.h>
 #include "icons/IconList.h"
 //FIXME: get rid of this
-#include "minecraft/legacy/LwjglVersionList.h"
-#include "minecraft/MinecraftVersionList.h"
-#include "minecraft/liteloader/LiteLoaderVersionList.h"
-#include "minecraft/forge/ForgeVersionList.h"
+#include <legacy/LwjglVersionList.h>
+#include <MinecraftVersionList.h>
+#include <liteloader/LiteLoaderVersionList.h>
+#include <forge/ForgeVersionList.h>
 
-#include "net/HttpMetaCache.h"
-#include "net/URLConstants.h"
-#include "Env.h"
+#include <net/HttpMetaCache.h>
+#include <net/URLConstants.h>
+#include <Env.h>
 
-#include "java/JavaUtils.h"
+#include <java/JavaUtils.h>
 
-#include "updater/UpdateChecker.h"
+#include <updater/UpdateChecker.h>
 
-#include "tools/JProfiler.h"
-#include "tools/JVisualVM.h"
-#include "tools/MCEditTool.h"
+#include <tools/JProfiler.h>
+#include <tools/JVisualVM.h>
+#include <tools/MCEditTool.h>
 
 #include <xdgicon.h>
-#include "settings/INISettingsObject.h"
-#include "settings/Setting.h"
+#include <settings/INISettingsObject.h>
+#include <settings/Setting.h>
 
-#include "trans/TranslationDownloader.h"
+#include <trans/TranslationDownloader.h>
 
-#include "minecraft/ftb/FTBPlugin.h"
+#include <ftb/FTBInstanceProvider.h>
 
 #include <Commandline.h>
 #include <FileSystem.h>
@@ -482,8 +482,6 @@ void MultiMC::initGlobalSettings(bool test_mode)
 	m_settings->registerSetting("ConsoleFontSize", defaultSize);
 	m_settings->registerSetting("ConsoleMaxLines", 100000);
 	m_settings->registerSetting("ConsoleOverflowStop", true);
-
-	FTBPlugin::initialize(m_settings);
 
 	// Folders
 	m_settings->registerSetting("InstanceDir", "instances");

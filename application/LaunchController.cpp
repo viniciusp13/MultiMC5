@@ -1,6 +1,6 @@
 #include "LaunchController.h"
 #include "MainWindow.h"
-#include <minecraft/auth/MojangAccountList.h>
+#include <auth/MojangAccountList.h>
 #include "MultiMC.h"
 #include "dialogs/CustomMessageBox.h"
 #include "dialogs/ProfileSelectDialog.h"
@@ -13,7 +13,7 @@
 #include <QLineEdit>
 #include <QInputDialog>
 #include <tasks/Task.h>
-#include <minecraft/auth/YggdrasilTask.h>
+#include <auth/YggdrasilTask.h>
 #include <launch/steps/TextPrint.h>
 #include <QStringList>
 
@@ -90,97 +90,100 @@ void LaunchController::login()
 
 	while (tryagain)
 	{
-		m_session = std::make_shared<AuthSession>();
-		m_session->wants_online = m_online;
-		auto task = account->login(m_session, password);
-		if (task)
+		m_session = std::make_shared<Minecraft::AuthSession>();
+		m_session->setLoginRequired(m_online);
+		if(m_session->loginRequired())
 		{
-			// We'll need to validate the access token to make sure the account
-			// is still logged in.
-			ProgressDialog progDialog(m_parentWidget);
-			if (m_online)
+			auto task = account->login(m_session, password);
+			if (task)
 			{
-				progDialog.setSkipButton(true, tr("Play Offline"));
-			}
-			progDialog.execWithTask(task.get());
-			if (!task->successful())
-			{
-				auto failReasonNew = task->failReason();
-				if(failReasonNew == "Invalid token.")
+				// We'll need to validate the access token to make sure the account
+				// is still logged in.
+				ProgressDialog progDialog(m_parentWidget);
+				if (m_online)
 				{
-					failReason = needLoginAgain;
+					progDialog.setSkipButton(true, tr("Play Offline"));
 				}
-				else failReason = failReasonNew;
-			}
-		}
-		switch (m_session->status)
-		{
-		case AuthSession::Undetermined:
-		{
-			qCritical() << "Received undetermined session status during login. Bye.";
-			tryagain = false;
-			emitFailed(tr("Received undetermined session status during login."));
-			break;
-		}
-		case AuthSession::RequiresPassword:
-		{
-			EditAccountDialog passDialog(failReason, m_parentWidget, EditAccountDialog::PasswordField);
-			auto username = m_session->username;
-			auto chopN = [](QString toChop, int N) -> QString
-			{
-				if(toChop.size() > N)
+				progDialog.execWithTask(task.get());
+				if (!task->successful())
 				{
-					auto left = toChop.left(N);
-					left += QString("\u25CF").repeated(toChop.size() - N);
-					return left;
+					auto failReasonNew = task->failReason();
+					if(failReasonNew == "Invalid token.")
+					{
+						failReason = needLoginAgain;
+					}
+					else failReason = failReasonNew;
 				}
-				return toChop;
-			};
-
-			if(username.contains('@'))
-			{
-				auto parts = username.split('@');
-				auto mailbox = chopN(parts[0],3);
-				QString domain = chopN(parts[1], 3);
-				username = mailbox + '@' + domain;
 			}
-			passDialog.setUsername(username);
-			if (passDialog.exec() == QDialog::Accepted)
+			switch (m_session->getStatus())
 			{
-				password = passDialog.password();
-			}
-			else
+			case BaseAuthSession::Undetermined:
 			{
+				qCritical() << "Received undetermined session status during login. Bye.";
 				tryagain = false;
-			}
-			break;
-		}
-		case AuthSession::PlayableOffline:
-		{
-			// we ask the user for a player name
-			bool ok = false;
-			QString usedname = m_session->player_name;
-			QString name = QInputDialog::getText(m_parentWidget, tr("Player name"),
-												 tr("Choose your offline mode player name."),
-												 QLineEdit::Normal, m_session->player_name, &ok);
-			if (!ok)
-			{
-				tryagain = false;
+				emitFailed(tr("Received undetermined session status during login."));
 				break;
 			}
-			if (name.length())
+			case BaseAuthSession::RequiresPassword:
 			{
-				usedname = name;
+				EditAccountDialog passDialog(failReason, m_parentWidget, EditAccountDialog::PasswordField);
+				auto username = m_session->userName();
+				auto chopN = [](QString toChop, int N) -> QString
+				{
+					if(toChop.size() > N)
+					{
+						auto left = toChop.left(N);
+						left += QString("\u25CF").repeated(toChop.size() - N);
+						return left;
+					}
+					return toChop;
+				};
+
+				if(username.contains('@'))
+				{
+					auto parts = username.split('@');
+					auto mailbox = chopN(parts[0],3);
+					QString domain = chopN(parts[1], 3);
+					username = mailbox + '@' + domain;
+				}
+				passDialog.setUsername(username);
+				if (passDialog.exec() == QDialog::Accepted)
+				{
+					password = passDialog.password();
+				}
+				else
+				{
+					tryagain = false;
+				}
+				break;
 			}
-			m_session->MakeOffline(usedname);
-			// offline flavored game from here :3
-		}
-		case AuthSession::PlayableOnline:
-		{
-			launchInstance();
-			tryagain = false;
-			return;
-		}
+			case BaseAuthSession::PlayableOffline:
+			{
+				// we ask the user for a player name
+				bool ok = false;
+				QString usedname = m_session->offlineName();
+				QString name = QInputDialog::getText(m_parentWidget, tr("Player name"),
+													tr("Choose your offline mode player name."),
+													QLineEdit::Normal, m_session->offlineName(), &ok);
+				if (!ok)
+				{
+					tryagain = false;
+					break;
+				}
+				if (name.length())
+				{
+					usedname = name;
+				}
+				m_session->setOfflineName(usedname);
+				// offline flavored game from here :3
+			}
+			case BaseAuthSession::PlayableOnline:
+			{
+				launchInstance();
+				tryagain = false;
+				return;
+			}
+			}
 		}
 	}
 	emitFailed(tr("Failed to launch."));

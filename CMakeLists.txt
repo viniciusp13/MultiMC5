@@ -103,6 +103,7 @@ add_subdirectory(libraries/iconfix) # fork of Qt's QIcon loader
 
 add_subdirectory(api/logic)
 add_subdirectory(api/gui)
+add_subdirectory(api/minecraft)
 
 add_subdirectory(application)
 add_subdirectory(wonkoclient)

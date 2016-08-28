@@ -30,10 +30,12 @@
 #include "BaseInstance.h"
 
 //FIXME: this really doesn't belong *here*
-#include "minecraft/onesix/OneSixInstance.h"
-#include "minecraft/legacy/LegacyInstance.h"
-#include "minecraft/ftb/FTBPlugin.h"
-#include "minecraft/MinecraftVersion.h"
+/*
+#include "onesix/OneSixInstance.h"
+#include "legacy/LegacyInstance.h"
+#include "ftb/FTBPlugin.h"
+#include "MinecraftVersion.h"
+*/
 #include "settings/INISettingsObject.h"
 #include "NullInstance.h"
 #include "FileSystem.h"
@@ -131,23 +133,6 @@ QStringList InstanceList::getGroups()
 	return m_groups.toList();
 }
 
-void InstanceList::suspendGroupSaving()
-{
-	suspendedGroupSave = true;
-}
-
-void InstanceList::resumeGroupSaving()
-{
-	if(suspendedGroupSave)
-	{
-		suspendedGroupSave = false;
-		if(queuedGroupSave)
-		{
-			saveGroupList();
-		}
-	}
-}
-
 void InstanceList::deleteGroup(const QString& name)
 {
 	for(auto & instance: m_instances)
@@ -162,12 +147,6 @@ void InstanceList::deleteGroup(const QString& name)
 
 void InstanceList::saveGroupList()
 {
-	if(suspendedGroupSave)
-	{
-		queuedGroupSave = true;
-		return;
-	}
-
 	QString groupFileName = m_instDir + "/instgroups.json";
 	QMap<QString, QSet<QString>> groupMap;
 	for (auto instance : m_instances)
@@ -320,25 +299,10 @@ InstanceList::InstListError InstanceList::loadList()
 	loadGroupList(groupMap);
 
 	QList<InstancePtr> tempList;
+	for(auto & provider: m_instanceProviders)
 	{
-		QDirIterator iter(m_instDir, QDir::Dirs | QDir::NoDot | QDir::NoDotDot | QDir::Readable,
-						  QDirIterator::FollowSymlinks);
-		while (iter.hasNext())
-		{
-			QString subDir = iter.next();
-			if (!QFileInfo(FS::PathCombine(subDir, "instance.cfg")).exists())
-				continue;
-			qDebug() << "Loading MultiMC instance from " << subDir;
-			InstancePtr instPtr;
-			auto error = loadInstance(instPtr, subDir);
-			if(!continueProcessInstance(instPtr, error, subDir, groupMap))
-				continue;
-			tempList.append(instPtr);
-		}
+		provider->loadInstances(m_globalSettings, groupMap, tempList);
 	}
-
-	// FIXME: generalize
-	FTBPlugin::loadInstances(m_globalSettings, groupMap, tempList);
 
 	beginResetModel();
 	m_instances.clear();
@@ -455,35 +419,10 @@ bool InstanceList::continueProcessInstance(InstancePtr instPtr, const int error,
 	}
 }
 
-InstanceList::InstLoadError
-InstanceList::loadInstance(InstancePtr &inst, const QString &instDir)
-{
-	auto instanceSettings = std::make_shared<INISettingsObject>(FS::PathCombine(instDir, "instance.cfg"));
-
-	instanceSettings->registerSetting("InstanceType", "Legacy");
-
-	QString inst_type = instanceSettings->get("InstanceType").toString();
-
-	// FIXME: replace with a map lookup, where instance classes register their types
-	if (inst_type == "OneSix" || inst_type == "Nostalgia")
-	{
-		inst.reset(new OneSixInstance(m_globalSettings, instanceSettings, instDir));
-	}
-	else if (inst_type == "Legacy")
-	{
-		inst.reset(new LegacyInstance(m_globalSettings, instanceSettings, instDir));
-	}
-	else
-	{
-		inst.reset(new NullInstance(m_globalSettings, instanceSettings, instDir));
-	}
-	inst->init();
-	return NoLoadError;
-}
-
 InstanceList::InstCreateError
 InstanceList::createInstance(InstancePtr &inst, BaseVersionPtr version, const QString &instDir)
 {
+/*
 	QDir rootDir(instDir);
 
 	qDebug() << instDir.toUtf8();
@@ -505,7 +444,6 @@ InstanceList::createInstance(InstancePtr &inst, BaseVersionPtr version, const QS
 	auto minecraftVersion = std::dynamic_pointer_cast<MinecraftVersion>(version);
 	if(minecraftVersion)
 	{
-		auto mcVer = std::dynamic_pointer_cast<MinecraftVersion>(version);
 		instanceSettings->set("InstanceType", "OneSix");
 		inst.reset(new OneSixInstance(m_globalSettings, instanceSettings, instDir));
 		inst->setIntendedVersionId(version->descriptor());
@@ -513,11 +451,14 @@ InstanceList::createInstance(InstancePtr &inst, BaseVersionPtr version, const QS
 		return InstanceList::NoCreateError;
 	}
 	return InstanceList::NoSuchVersion;
+*/
+	return InstanceList::CantCreateDir;
 }
 
 InstanceList::InstCreateError
 InstanceList::copyInstance(InstancePtr &newInstance, InstancePtr &oldInstance, const QString &instDir, bool copySaves)
 {
+	/*
 	QDir rootDir(instDir);
 	std::unique_ptr<IPathMatcher> matcher;
 	if(!copySaves)
@@ -556,6 +497,8 @@ InstanceList::copyInstance(InstancePtr &newInstance, InstancePtr &oldInstance, c
 		rootDir.removeRecursively();
 		return UnknownCreateError;
 	}
+	*/
+	return UnknownCreateError;
 }
 
 void InstanceList::instanceNuked(BaseInstance *inst)

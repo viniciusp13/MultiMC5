@@ -87,7 +87,7 @@ public:
 	{
 		return false;
 	}
-	QStringList verboseDescription(AuthSessionPtr session) override
+	QStringList verboseDescription() override
 	{
 		QStringList out;
 		out << "Null instance - placeholder.";

@@ -2,7 +2,7 @@
 #include <QModelIndex>
 #include <DesktopServices.h>
 #include <QWidget>
-#include <minecraft/Mod.h>
+#include <Mod.h>
 
 bool lastfirst(QModelIndexList &list, int &first, int &last);
 

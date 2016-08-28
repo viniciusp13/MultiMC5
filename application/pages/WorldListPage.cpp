@@ -15,7 +15,7 @@
 
 #include "WorldListPage.h"
 #include "ui_WorldListPage.h"
-#include "minecraft/WorldList.h"
+#include <WorldList.h>
 #include <DesktopServices.h>
 #include "dialogs/ModEditDialogCommon.h"
 #include <QEvent>

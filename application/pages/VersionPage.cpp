@@ -35,17 +35,17 @@
 #include <QString>
 #include <QUrl>
 
-#include "minecraft/MinecraftProfile.h"
-#include "minecraft/forge/ForgeVersionList.h"
-#include "minecraft/forge/ForgeInstaller.h"
-#include "minecraft/liteloader/LiteLoaderVersionList.h"
-#include "minecraft/liteloader/LiteLoaderInstaller.h"
-#include "minecraft/auth/MojangAccountList.h"
-#include "minecraft/Mod.h"
-#include "minecraft/MinecraftVersion.h"
-#include "minecraft/MinecraftVersionList.h"
-#include "icons/IconList.h"
-#include "Exception.h"
+#include <MinecraftProfile.h>
+#include <forge/ForgeVersionList.h>
+#include <forge/ForgeInstaller.h>
+#include <liteloader/LiteLoaderVersionList.h>
+#include <liteloader/LiteLoaderInstaller.h>
+#include <auth/MojangAccountList.h>
+#include <Mod.h>
+#include <MinecraftVersion.h>
+#include <MinecraftVersionList.h>
+#include <icons/IconList.h>
+#include <Exception.h>
 
 #include "MultiMC.h"
 

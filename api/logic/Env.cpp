@@ -7,7 +7,7 @@
 #include <QNetworkAccessManager>
 #include <QDebug>
 #include "tasks/Task.h"
-#include "wonko/WonkoIndex.h"
+//#include "wonko/WonkoIndex.h"
 #include <QDebug>
 
 /*
@@ -136,7 +136,7 @@ void Env::registerVersionList(QString name, std::shared_ptr< BaseVersionList > v
 {
 	m_versionLists[name] = vlist;
 }
-
+/*
 std::shared_ptr<WonkoIndex> Env::wonkoIndex()
 {
 	if (!m_wonkoIndex)
@@ -145,6 +145,7 @@ std::shared_ptr<WonkoIndex> Env::wonkoIndex()
 	}
 	return m_wonkoIndex;
 }
+*/
 
 
 void Env::initHttpMetaCache()

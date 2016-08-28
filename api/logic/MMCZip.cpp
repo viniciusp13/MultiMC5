@@ -216,7 +216,7 @@ bool MMCZip::mergeZipFiles(QuaZip *into, QFileInfo from, QSet<QString> &containe
 	}
 	return true;
 }
-
+/*
 bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const QList<Mod>& mods)
 {
 	QuaZip zipOut(targetJarPath);
@@ -299,7 +299,7 @@ bool MMCZip::createModdedJar(QString sourceJarPath, QString targetJarPath, const
 	}
 	return true;
 }
-
+*/
 bool MMCZip::noFilter(QString)
 {
 	return true;

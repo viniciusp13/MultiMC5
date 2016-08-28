@@ -2,7 +2,7 @@
 // Created by robotbrain on 3/27/16.
 //
 
-#include <minecraft/MinecraftVersionList.h>
+#include <MinecraftVersionList.h>
 #include <Env.h>
 #include <minecraft/liteloader/LiteLoaderVersionList.h>
 #include <minecraft/forge/ForgeVersionList.h>

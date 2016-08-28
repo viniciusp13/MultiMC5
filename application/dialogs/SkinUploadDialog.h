@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include <minecraft/auth/MojangAccount.h>
+#include <auth/MojangAccount.h>
 
 namespace Ui
 {

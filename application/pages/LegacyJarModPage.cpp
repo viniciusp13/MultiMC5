@@ -22,9 +22,9 @@
 #include "dialogs/VersionSelectDialog.h"
 #include "dialogs/ProgressDialog.h"
 #include "dialogs/ModEditDialogCommon.h"
-#include "minecraft/legacy/LegacyModList.h"
-#include "minecraft/legacy/LegacyInstance.h"
-#include "Env.h"
+#include <legacy/LegacyModList.h>
+#include <legacy/LegacyInstance.h>
+#include <Env.h>
 #include <DesktopServices.h>
 #include "MultiMC.h"
 #include <GuiUtil.h>

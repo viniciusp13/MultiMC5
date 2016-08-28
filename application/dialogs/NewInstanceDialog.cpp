@@ -19,7 +19,7 @@
 
 #include <BaseVersion.h>
 #include <icons/IconList.h>
-#include <minecraft/MinecraftVersionList.h>
+#include <MinecraftVersionList.h>
 #include <tasks/Task.h>
 #include <InstanceList.h>
 

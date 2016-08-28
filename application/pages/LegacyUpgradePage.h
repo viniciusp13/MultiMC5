@@ -17,9 +17,9 @@
 
 #include <QWidget>
 
-#include "minecraft/legacy/LegacyInstance.h"
+#include <legacy/LegacyInstance.h>
 #include "pages/BasePage.h"
-#include <MultiMC.h>
+#include "MultiMC.h"
 
 namespace Ui
 {

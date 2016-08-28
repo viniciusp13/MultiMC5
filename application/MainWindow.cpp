@@ -54,9 +54,9 @@
 #include <java/JavaUtils.h>
 #include <java/JavaInstallList.h>
 #include <launch/LaunchTask.h>
-#include <minecraft/MinecraftVersionList.h>
-#include <minecraft/legacy/LwjglVersionList.h>
-#include <minecraft/auth/MojangAccountList.h>
+#include <MinecraftVersionList.h>
+#include <legacy/LwjglVersionList.h>
+#include <auth/MojangAccountList.h>
 #include <SkinUtils.h>
 #include <net/URLConstants.h>
 #include <net/NetJob.h>
@@ -1030,6 +1030,7 @@ void MainWindow::waitForMinecraftVersions()
 
 InstancePtr MainWindow::instanceFromZipPack(QString instName, QString instGroup, QString instIcon, QUrl url)
 {
+	/*
 	InstancePtr newInstance;
 
 	QString instancesDir = MMC->settings()->get("InstanceDir").toString();
@@ -1125,6 +1126,8 @@ InstancePtr MainWindow::instanceFromZipPack(QString instName, QString instGroup,
 
 	finalizeInstance(newInstance);
 	return newInstance;
+	*/
+	return nullptr;
 }
 
 InstancePtr MainWindow::instanceFromVersion(QString instName, QString instGroup, QString instIcon, BaseVersionPtr version)

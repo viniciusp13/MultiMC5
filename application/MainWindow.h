@@ -21,10 +21,10 @@
 #include <QProcess>
 #include <QTimer>
 
-#include "BaseInstance.h"
-#include "minecraft/auth/MojangAccount.h"
-#include "net/NetJob.h"
-#include "updater/GoUpdate.h"
+#include <BaseInstance.h>
+#include <auth/MojangAccount.h>
+#include <net/NetJob.h>
+#include <updater/GoUpdate.h>
 
 class LaunchController;
 class NewsChecker;

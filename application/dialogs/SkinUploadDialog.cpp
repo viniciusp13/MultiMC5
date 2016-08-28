@@ -1,7 +1,7 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <FileSystem.h>
-#include <minecraft/SkinUpload.h>
+#include <SkinUpload.h>
 #include "SkinUploadDialog.h"
 #include "ui_SkinUploadDialog.h"
 #include "ProgressDialog.h"

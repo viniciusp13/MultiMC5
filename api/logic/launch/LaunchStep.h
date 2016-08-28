@@ -20,8 +20,10 @@
 
 #include <QStringList>
 
+#include "multimc_logic_export.h"
+
 class LaunchTask;
-class LaunchStep: public Task
+class MULTIMC_LOGIC_EXPORT LaunchStep: public Task
 {
 	Q_OBJECT
 public: /* methods */

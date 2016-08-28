@@ -25,9 +25,9 @@
 #include "dialogs/CustomMessageBox.h"
 #include "dialogs/ModEditDialogCommon.h"
 #include <GuiUtil.h>
-#include "minecraft/ModList.h"
-#include "minecraft/Mod.h"
-#include "minecraft/VersionFilterData.h"
+#include <ModList.h>
+#include <Mod.h>
+#include <VersionFilterData.h>
 #include <DesktopServices.h>
 
 ModFolderPage::ModFolderPage(BaseInstance *inst, std::shared_ptr<ModList> mods, QString id,

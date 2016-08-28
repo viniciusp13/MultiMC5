@@ -11,6 +11,7 @@ set(CORE_SOURCES
 	BaseVersion.h
 	BaseInstance.h
 	BaseInstance.cpp
+	BaseInstanceProvider.h
 	NullInstance.h
 	MMCZip.h
 	MMCZip.cpp
@@ -175,163 +176,6 @@ set(STATUS_SOURCES
 	status/StatusChecker.cpp
 )
 
-# Support for Minecraft instances and launch
-set(MINECRAFT_SOURCES
-	# Minecraft support
-	minecraft/auth/AuthSession.h
-	minecraft/auth/AuthSession.cpp
-	minecraft/auth/MojangAccountList.h
-	minecraft/auth/MojangAccountList.cpp
-	minecraft/auth/MojangAccount.h
-	minecraft/auth/MojangAccount.cpp
-	minecraft/auth/YggdrasilTask.h
-	minecraft/auth/YggdrasilTask.cpp
-	minecraft/auth/flows/AuthenticateTask.h
-	minecraft/auth/flows/AuthenticateTask.cpp
-	minecraft/auth/flows/RefreshTask.cpp
-	minecraft/auth/flows/RefreshTask.cpp
-	minecraft/auth/flows/ValidateTask.h
-	minecraft/auth/flows/ValidateTask.cpp
-	minecraft/onesix/BaseInstaller.h
-	minecraft/onesix/BaseInstaller.cpp
-	minecraft/onesix/OneSixUpdate.h
-	minecraft/onesix/OneSixUpdate.cpp
-	minecraft/onesix/OneSixInstance.h
-	minecraft/onesix/OneSixInstance.cpp
-	minecraft/onesix/OneSixProfileStrategy.cpp
-	minecraft/onesix/OneSixProfileStrategy.h
-	minecraft/onesix/OneSixVersionFormat.cpp
-	minecraft/onesix/OneSixVersionFormat.h
-	minecraft/onesix/update/AssetUpdateTask.h
-	minecraft/onesix/update/AssetUpdateTask.cpp
-	minecraft/onesix/update/FMLLibrariesTask.cpp
-	minecraft/onesix/update/FMLLibrariesTask.h
-	minecraft/onesix/update/FoldersTask.cpp
-	minecraft/onesix/update/FoldersTask.h
-	minecraft/onesix/update/LibrariesTask.cpp
-	minecraft/onesix/update/LibrariesTask.h
-	minecraft/launch/CreateServerResourcePacksFolder.cpp
-	minecraft/launch/CreateServerResourcePacksFolder.h
-	minecraft/launch/ModMinecraftJar.cpp
-	minecraft/launch/ModMinecraftJar.h
-	minecraft/launch/DirectJavaLaunch.cpp
-	minecraft/launch/DirectJavaLaunch.h
-	minecraft/launch/ExtractNatives.cpp
-	minecraft/launch/ExtractNatives.h
-	minecraft/launch/LauncherPartLaunch.cpp
-	minecraft/launch/LauncherPartLaunch.h
-	minecraft/launch/PrintInstanceInfo.cpp
-	minecraft/launch/PrintInstanceInfo.h
-	minecraft/legacy/LegacyModList.h
-	minecraft/legacy/LegacyModList.cpp
-	minecraft/legacy/LegacyUpdate.h
-	minecraft/legacy/LegacyUpdate.cpp
-	minecraft/legacy/LegacyInstance.h
-	minecraft/legacy/LegacyInstance.cpp
-	minecraft/legacy/LwjglVersionList.h
-	minecraft/legacy/LwjglVersionList.cpp
-	minecraft/GradleSpecifier.h
-	minecraft/MinecraftProfile.cpp
-	minecraft/MinecraftProfile.h
-	minecraft/MojangVersionFormat.cpp
-	minecraft/MojangVersionFormat.h
-	minecraft/JarMod.h
-	minecraft/MinecraftInstance.cpp
-	minecraft/MinecraftInstance.h
-	minecraft/MinecraftVersion.cpp
-	minecraft/MinecraftVersion.h
-	minecraft/MinecraftVersionList.cpp
-	minecraft/MinecraftVersionList.h
-	minecraft/Rule.cpp
-	minecraft/Rule.h
-	minecraft/OpSys.cpp
-	minecraft/OpSys.h
-	minecraft/ParseUtils.cpp
-	minecraft/ParseUtils.h
-	minecraft/ProfileUtils.cpp
-	minecraft/ProfileUtils.h
-	minecraft/ProfileStrategy.h
-	minecraft/Library.cpp
-	minecraft/Library.h
-	minecraft/MojangDownloadInfo.h
-	minecraft/VersionBuildError.h
-	minecraft/VersionFile.cpp
-	minecraft/VersionFile.h
-	minecraft/ProfilePatch.h
-	minecraft/VersionFilterData.h
-	minecraft/VersionFilterData.cpp
-	minecraft/Mod.h
-	minecraft/Mod.cpp
-	minecraft/ModList.h
-	minecraft/ModList.cpp
-	minecraft/World.h
-	minecraft/World.cpp
-	minecraft/WorldList.h
-	minecraft/WorldList.cpp
-
-	# FTB
-	minecraft/ftb/OneSixFTBInstance.h
-	minecraft/ftb/OneSixFTBInstance.cpp
-	minecraft/ftb/LegacyFTBInstance.h
-	minecraft/ftb/LegacyFTBInstance.cpp
-	minecraft/ftb/FTBProfileStrategy.h
-	minecraft/ftb/FTBProfileStrategy.cpp
-	minecraft/ftb/FTBPlugin.h
-	minecraft/ftb/FTBPlugin.cpp
-
-	# Assets
-	minecraft/AssetsUtils.h
-	minecraft/AssetsUtils.cpp
-
-	# Forge and all things forge related
-	minecraft/forge/ForgeVersion.h
-	minecraft/forge/ForgeVersion.cpp
-	minecraft/forge/ForgeVersionList.h
-	minecraft/forge/ForgeVersionList.cpp
-	minecraft/forge/ForgeXzDownload.h
-	minecraft/forge/ForgeXzDownload.cpp
-	minecraft/forge/LegacyForge.h
-	minecraft/forge/LegacyForge.cpp
-	minecraft/forge/ForgeInstaller.h
-	minecraft/forge/ForgeInstaller.cpp
-
-	# Liteloader and related things
-	minecraft/liteloader/LiteLoaderInstaller.h
-	minecraft/liteloader/LiteLoaderInstaller.cpp
-	minecraft/liteloader/LiteLoaderVersionList.h
-	minecraft/liteloader/LiteLoaderVersionList.cpp
-	minecraft/SkinUpload.cpp
-	minecraft/SkinUpload.h
-	)
-
-add_unit_test(GradleSpecifier
-	SOURCES minecraft/GradleSpecifier_test.cpp
-	LIBS MultiMC_logic
-	)
-
-add_unit_test(MojangVersionFormat
-	SOURCES minecraft/MojangVersionFormat_test.cpp
-	LIBS MultiMC_logic
-	DATA minecraft/testdata
-	)
-
-add_unit_test(Library
-	SOURCES minecraft/Library_test.cpp
-	LIBS MultiMC_logic
-	)
-
-# FIXME: shares data with FileSystem test
-add_unit_test(ModList
-	SOURCES minecraft/ModList_test.cpp
-	DATA testdata
-	LIBS MultiMC_logic
-	)
-
-add_unit_test(ParseUtils
-	SOURCES minecraft/ParseUtils_test.cpp
-	LIBS MultiMC_logic
-	)
-
 # the screenshots feature
 set(SCREENSHOTS_SOURCES
 	screenshots/Screenshot.h
@@ -411,38 +255,7 @@ set(TOOLS_SOURCES
 	tools/JProfiler.h
 	tools/JVisualVM.cpp
 	tools/JVisualVM.h
-	tools/MCEditTool.cpp
-	tools/MCEditTool.h
 )
-
-set(WONKO_SOURCES
-	# Wonko
-	wonko/tasks/BaseWonkoEntityRemoteLoadTask.cpp
-	wonko/tasks/BaseWonkoEntityRemoteLoadTask.h
-	wonko/tasks/BaseWonkoEntityLocalLoadTask.cpp
-	wonko/tasks/BaseWonkoEntityLocalLoadTask.h
-	wonko/format/WonkoFormatV1.cpp
-	wonko/format/WonkoFormatV1.h
-	wonko/format/WonkoFormat.cpp
-	wonko/format/WonkoFormat.h
-	wonko/BaseWonkoEntity.cpp
-	wonko/BaseWonkoEntity.h
-	wonko/WonkoVersionList.cpp
-	wonko/WonkoVersionList.h
-	wonko/WonkoVersion.cpp
-	wonko/WonkoVersion.h
-	wonko/WonkoIndex.cpp
-	wonko/WonkoIndex.h
-	wonko/WonkoUtil.cpp
-	wonko/WonkoUtil.h
-	wonko/WonkoReference.cpp
-	wonko/WonkoReference.h
-)
-
-add_unit_test(WonkoIndex
-	SOURCES wonko/WonkoIndex_test.cpp
-	LIBS MultiMC_logic
-	)
 
 ################################ COMPILE ################################
 
@@ -458,7 +271,6 @@ set(LOGIC_SOURCES
 	${NOTIFICATIONS_SOURCES}
 	${NEWS_SOURCES}
 	${STATUS_SOURCES}
-	${MINECRAFT_SOURCES}
 	${SCREENSHOTS_SOURCES}
 	${TASKS_SOURCES}
 	${SETTINGS_SOURCES}

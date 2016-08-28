@@ -18,7 +18,9 @@
 #include <launch/LaunchStep.h>
 #include <launch/LoggedProcess.h>
 
-class PostLaunchCommand: public LaunchStep
+#include "multimc_logic_export.h"
+
+class MULTIMC_LOGIC_EXPORT PostLaunchCommand: public LaunchStep
 {
 	Q_OBJECT
 public:

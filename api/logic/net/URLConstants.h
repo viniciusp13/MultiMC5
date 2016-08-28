@@ -16,6 +16,7 @@
 #pragma once
 
 #include <QString>
+#include "multimc_logic_export.h"
 
 namespace URLConstants
 {
@@ -35,6 +36,6 @@ const QString FMLLIBS_OUR_BASE_URL("http://files.multimc.org/fmllibs/");
 const QString FMLLIBS_FORGE_BASE_URL("http://files.minecraftforge.net/fmllibs/");
 const QString TRANSLATIONS_BASE_URL("http://files.multimc.org/translations/");
 
-QString getJarPath(QString version);
-QString getLegacyJarUrl(QString version);
+QString MULTIMC_LOGIC_EXPORT getJarPath(QString version);
+QString MULTIMC_LOGIC_EXPORT getLegacyJarUrl(QString version);
 }

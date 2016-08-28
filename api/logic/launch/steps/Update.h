@@ -20,8 +20,9 @@
 #include <launch/LoggedProcess.h>
 #include <java/JavaChecker.h>
 
-// FIXME: stupid. should be defined by the instance type? or even completely abstracted away...
-class Update: public LaunchStep
+#include "multimc_logic_export.h"
+
+class MULTIMC_LOGIC_EXPORT Update: public LaunchStep
 {
 	Q_OBJECT
 public:
