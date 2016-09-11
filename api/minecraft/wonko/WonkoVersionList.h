@@ -28,7 +28,7 @@ class MULTIMC_MINECRAFT_EXPORT WonkoVersionList : public BaseVersionList, public
 	Q_PROPERTY(QString uid READ uid CONSTANT)
 	Q_PROPERTY(QString name READ name NOTIFY nameChanged)
 public:
-	explicit WonkoVersionList(const QString &uid, QObject *parent = nullptr);
+	explicit WonkoVersionList(Wonko * context, const QString &uid, QObject *parent = nullptr);
 
 	enum Roles
 	{

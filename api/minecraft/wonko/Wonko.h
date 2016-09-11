@@ -37,7 +37,10 @@ public:
 	QUrl versionUrl(const QString &uid, const QString &version);
 	QDir localWonkoDir();
 
-	std::shared_ptr<WonkoIndex> wonkoIndex();
+	std::shared_ptr<WonkoIndex> wonkoIndex()
+	{
+		return m_wonkoIndex;
+	}
 
 	void setRootUrl(const QString &url)
 	{

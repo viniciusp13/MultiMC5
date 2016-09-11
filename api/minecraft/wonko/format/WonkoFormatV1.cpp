@@ -18,6 +18,7 @@
 
 #include "Json.h"
 
+#include "wonko/Wonko.h"
 #include "wonko/WonkoIndex.h"
 #include "wonko/WonkoVersion.h"
 #include "wonko/WonkoVersionList.h"
@@ -25,7 +26,7 @@
 
 using namespace Json;
 
-static WonkoVersionPtr parseCommonVersion(const QString &uid, const QJsonObject &obj)
+static WonkoVersionPtr parseCommonVersion(Wonko * context, const QString &uid, const QJsonObject &obj)
 {
 	const QVector<QJsonObject> requiresRaw = obj.contains("requires") ? requireIsArrayOf<QJsonObject>(obj, "requires") : QVector<QJsonObject>();
 	QVector<WonkoReference> requires;
@@ -37,7 +38,7 @@ static WonkoVersionPtr parseCommonVersion(const QString &uid, const QJsonObject 
 		return ref;
 	});
 
-	WonkoVersionPtr version = std::make_shared<WonkoVersion>(uid, requireString(obj, "version"));
+	WonkoVersionPtr version = std::make_shared<WonkoVersion>(context, uid, requireString(obj, "version"));
 	if (obj.value("time").isString())
 	{
 		version->setTime(QDateTime::fromString(requireString(obj, "time"), Qt::ISODate).toMSecsSinceEpoch() / 1000);
@@ -76,39 +77,39 @@ static void serializeCommonVersion(const WonkoVersion *version, QJsonObject &obj
 	obj.insert("requires", requires);
 }
 
-BaseWonkoEntity::Ptr WonkoFormatV1::parseIndexInternal(const QJsonObject &obj) const
+BaseWonkoEntity::Ptr WonkoFormatV1::parseIndexInternal(Wonko * context, const QJsonObject &obj) const
 {
 	const QVector<QJsonObject> objects = requireIsArrayOf<QJsonObject>(obj, "index");
 	QVector<WonkoVersionListPtr> lists;
 	lists.reserve(objects.size());
-	std::transform(objects.begin(), objects.end(), std::back_inserter(lists), [](const QJsonObject &obj)
+	std::transform(objects.begin(), objects.end(), std::back_inserter(lists), [context](const QJsonObject &obj)
 	{
-		WonkoVersionListPtr list = std::make_shared<WonkoVersionList>(requireString(obj, "uid"));
+		WonkoVersionListPtr list = std::make_shared<WonkoVersionList>(context, requireString(obj, "uid"));
 		list->setName(ensureString(obj, "name", QString()));
 		return list;
 	});
-	return std::make_shared<WonkoIndex>(lists);
+	return std::make_shared<WonkoIndex>(context, lists);
 }
-BaseWonkoEntity::Ptr WonkoFormatV1::parseVersionInternal(const QJsonObject &obj) const
+BaseWonkoEntity::Ptr WonkoFormatV1::parseVersionInternal(Wonko * context, const QJsonObject &obj) const
 {
-	WonkoVersionPtr version = parseCommonVersion(requireString(obj, "uid"), obj);
+	WonkoVersionPtr version = parseCommonVersion(context, requireString(obj, "uid"), obj);
 
 	version->setData(OneSixVersionFormat::versionFileFromJson(QJsonDocument(obj),
 										   QString("%1/%2.json").arg(version->uid(), version->version()),
 										   obj.contains("order")));
 	return version;
 }
-BaseWonkoEntity::Ptr WonkoFormatV1::parseVersionListInternal(const QJsonObject &obj) const
+BaseWonkoEntity::Ptr WonkoFormatV1::parseVersionListInternal(Wonko * context, const QJsonObject &obj) const
 {
 	const QString uid = requireString(obj, "uid");
 
 	const QVector<QJsonObject> versionsRaw = requireIsArrayOf<QJsonObject>(obj, "versions");
 	QVector<WonkoVersionPtr> versions;
 	versions.reserve(versionsRaw.size());
-	std::transform(versionsRaw.begin(), versionsRaw.end(), std::back_inserter(versions), [this, uid](const QJsonObject &vObj)
-	{ return parseCommonVersion(uid, vObj); });
+	std::transform(versionsRaw.begin(), versionsRaw.end(), std::back_inserter(versions), [this, uid, context](const QJsonObject &vObj)
+	{ return parseCommonVersion(context, uid, vObj); });
 
-	WonkoVersionListPtr list = std::make_shared<WonkoVersionList>(uid);
+	WonkoVersionListPtr list = std::make_shared<WonkoVersionList>(context, uid);
 	list->setName(ensureString(obj, "name", QString()));
 	list->setVersions(versions);
 	return list;
@@ -136,7 +137,7 @@ QJsonObject WonkoFormatV1::serializeVersionInternal(const WonkoVersion *ptr) con
 	obj.insert("formatVersion", 1);
 	obj.insert("uid", ptr->uid());
 	// TODO: the name should be looked up in the UI based on the uid
-	obj.insert("name", ENV.wonkoIndex()->getListGuaranteed(ptr->uid())->name());
+	obj.insert("name", ptr->context()->wonkoIndex()->getListGuaranteed(ptr->uid())->name());
 
 	return obj;
 }

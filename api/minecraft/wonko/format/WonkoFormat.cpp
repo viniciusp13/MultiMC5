@@ -32,34 +32,34 @@ static int formatVersion(const QJsonObject &obj)
 	return obj.value("formatVersion").toInt();
 }
 
-void WonkoFormat::parseIndex(const QJsonObject &obj, WonkoIndex *ptr)
+void WonkoFormat::parseIndex(Wonko * context, const QJsonObject &obj, WonkoIndex *ptr)
 {
 	const int version = formatVersion(obj);
 	switch (version) {
 	case 1:
-		ptr->merge(WonkoFormatV1().parseIndexInternal(obj));
+		ptr->merge(WonkoFormatV1().parseIndexInternal(context, obj));
 		break;
 	default:
 		throw WonkoParseException(QObject::tr("Unknown formatVersion: %1").arg(version));
 	}
 }
-void WonkoFormat::parseVersion(const QJsonObject &obj, WonkoVersion *ptr)
+void WonkoFormat::parseVersion(Wonko * context, const QJsonObject &obj, WonkoVersion *ptr)
 {
 	const int version = formatVersion(obj);
 	switch (version) {
 	case 1:
-		ptr->merge(WonkoFormatV1().parseVersionInternal(obj));
+		ptr->merge(WonkoFormatV1().parseVersionInternal(context, obj));
 		break;
 	default:
 		throw WonkoParseException(QObject::tr("Unknown formatVersion: %1").arg(version));
 	}
 }
-void WonkoFormat::parseVersionList(const QJsonObject &obj, WonkoVersionList *ptr)
+void WonkoFormat::parseVersionList(Wonko * context, const QJsonObject &obj, WonkoVersionList *ptr)
 {
 	const int version = formatVersion(obj);
 	switch (version) {
 	case 10:
-		ptr->merge(WonkoFormatV1().parseVersionListInternal(obj));
+		ptr->merge(WonkoFormatV1().parseVersionListInternal(context, obj));
 		break;
 	default:
 		throw WonkoParseException(QObject::tr("Unknown formatVersion: %1").arg(version));

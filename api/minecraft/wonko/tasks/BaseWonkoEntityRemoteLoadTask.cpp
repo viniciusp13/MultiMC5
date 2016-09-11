@@ -19,7 +19,7 @@
 #include "net/HttpMetaCache.h"
 #include "net/NetJob.h"
 #include "wonko/format/WonkoFormat.h"
-#include "wonko/WonkoUtil.h"
+#include "wonko/Wonko.h"
 #include "wonko/WonkoIndex.h"
 #include "wonko/WonkoVersion.h"
 #include "wonko/WonkoVersionList.h"
@@ -70,7 +70,7 @@ WonkoIndexRemoteLoadTask::WonkoIndexRemoteLoadTask(WonkoIndex *index, QObject *p
 }
 QUrl WonkoIndexRemoteLoadTask::url() const
 {
-	return Wonko::indexUrl();
+	return context()->indexUrl();
 }
 QString WonkoIndexRemoteLoadTask::name() const
 {
@@ -78,7 +78,7 @@ QString WonkoIndexRemoteLoadTask::name() const
 }
 void WonkoIndexRemoteLoadTask::parse(const QJsonObject &obj) const
 {
-	WonkoFormat::parseIndex(obj, dynamic_cast<WonkoIndex *>(entity()));
+	WonkoFormat::parseIndex(context(), obj, dynamic_cast<WonkoIndex *>(entity()));
 }
 
 //      WONKO VERSION LIST      //
@@ -88,7 +88,7 @@ WonkoVersionListRemoteLoadTask::WonkoVersionListRemoteLoadTask(WonkoVersionList 
 }
 QUrl WonkoVersionListRemoteLoadTask::url() const
 {
-	return Wonko::versionListUrl(list()->uid());
+	return context()->versionListUrl(list()->uid());
 }
 QString WonkoVersionListRemoteLoadTask::name() const
 {
@@ -96,7 +96,7 @@ QString WonkoVersionListRemoteLoadTask::name() const
 }
 void WonkoVersionListRemoteLoadTask::parse(const QJsonObject &obj) const
 {
-	WonkoFormat::parseVersionList(obj, list());
+	WonkoFormat::parseVersionList(context(), obj, list());
 }
 WonkoVersionList *WonkoVersionListRemoteLoadTask::list() const
 {
@@ -110,7 +110,7 @@ WonkoVersionRemoteLoadTask::WonkoVersionRemoteLoadTask(WonkoVersion *version, QO
 }
 QUrl WonkoVersionRemoteLoadTask::url() const
 {
-	return Wonko::versionUrl(version()->uid(), version()->version());
+	return context()->versionUrl(version()->uid(), version()->version());
 }
 QString WonkoVersionRemoteLoadTask::name() const
 {
@@ -118,7 +118,7 @@ QString WonkoVersionRemoteLoadTask::name() const
 }
 void WonkoVersionRemoteLoadTask::parse(const QJsonObject &obj) const
 {
-	WonkoFormat::parseVersion(obj, version());
+	WonkoFormat::parseVersion(context(), obj, version());
 }
 WonkoVersion *WonkoVersionRemoteLoadTask::version() const
 {

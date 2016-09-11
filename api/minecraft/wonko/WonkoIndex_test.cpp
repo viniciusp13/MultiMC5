@@ -1,6 +1,7 @@
 #include <QTest>
 #include "TestUtil.h"
 
+#include "wonko/Wonko.h"
 #include "wonko/WonkoIndex.h"
 #include "wonko/WonkoVersionList.h"
 #include "Env.h"
@@ -19,14 +20,16 @@ slots:
 */
 	void test_providesTasks()
 	{
-		WonkoIndex windex({std::make_shared<WonkoVersionList>("list1"), std::make_shared<WonkoVersionList>("list2"), std::make_shared<WonkoVersionList>("list3")});
+		Wonko w("http://someplace.net/wonko/");
+		WonkoIndex windex(&w, {std::make_shared<WonkoVersionList>(&w, "list1"), std::make_shared<WonkoVersionList>(&w, "list2"), std::make_shared<WonkoVersionList>(&w, "list3")});
 		QVERIFY(windex.localUpdateTask() != nullptr);
 		QVERIFY(windex.remoteUpdateTask() != nullptr);
 	}
 
 	void test_hasUid_and_getList()
 	{
-		WonkoIndex windex({std::make_shared<WonkoVersionList>("list1"), std::make_shared<WonkoVersionList>("list2"), std::make_shared<WonkoVersionList>("list3")});
+		Wonko w("http://someplace.net/wonko/");
+		WonkoIndex windex(&w, {std::make_shared<WonkoVersionList>(&w, "list1"), std::make_shared<WonkoVersionList>(&w, "list2"), std::make_shared<WonkoVersionList>(&w, "list3")});
 		QVERIFY(windex.hasUid("list1"));
 		QVERIFY(!windex.hasUid("asdf"));
 		QVERIFY(windex.getList("list2") != nullptr);
@@ -36,13 +39,14 @@ slots:
 
 	void test_merge()
 	{
-		WonkoIndex windex({std::make_shared<WonkoVersionList>("list1"), std::make_shared<WonkoVersionList>("list2"), std::make_shared<WonkoVersionList>("list3")});
+		Wonko w("http://someplace.net/wonko/");
+		WonkoIndex windex(&w, {std::make_shared<WonkoVersionList>(&w, "list1"), std::make_shared<WonkoVersionList>(&w, "list2"), std::make_shared<WonkoVersionList>(&w, "list3")});
 		QCOMPARE(windex.lists().size(), 3);
-		windex.merge(std::shared_ptr<WonkoIndex>(new WonkoIndex({std::make_shared<WonkoVersionList>("list1"), std::make_shared<WonkoVersionList>("list2"), std::make_shared<WonkoVersionList>("list3")})));
+		windex.merge(std::shared_ptr<WonkoIndex>(new WonkoIndex(&w, {std::make_shared<WonkoVersionList>(&w, "list1"), std::make_shared<WonkoVersionList>(&w, "list2"), std::make_shared<WonkoVersionList>(&w, "list3")})));
 		QCOMPARE(windex.lists().size(), 3);
-		windex.merge(std::shared_ptr<WonkoIndex>(new WonkoIndex({std::make_shared<WonkoVersionList>("list4"), std::make_shared<WonkoVersionList>("list2"), std::make_shared<WonkoVersionList>("list5")})));
+		windex.merge(std::shared_ptr<WonkoIndex>(new WonkoIndex(&w, {std::make_shared<WonkoVersionList>(&w, "list4"), std::make_shared<WonkoVersionList>(&w, "list2"), std::make_shared<WonkoVersionList>(&w, "list5")})));
 		QCOMPARE(windex.lists().size(), 5);
-		windex.merge(std::shared_ptr<WonkoIndex>(new WonkoIndex({std::make_shared<WonkoVersionList>("list6")})));
+		windex.merge(std::shared_ptr<WonkoIndex>(new WonkoIndex(&w, {std::make_shared<WonkoVersionList>(&w, "list6")})));
 		QCOMPARE(windex.lists().size(), 6);
 	}
 };

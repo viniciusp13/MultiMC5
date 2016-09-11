@@ -73,8 +73,8 @@ private:
 	std::unique_ptr<Task> m_currentTask;
 };
 
-WonkoVersionList::WonkoVersionList(const QString &uid, QObject *parent)
-	: BaseVersionList(parent), m_uid(uid)
+WonkoVersionList::WonkoVersionList(Wonko * context, const QString &uid, QObject *parent)
+	: BaseVersionList(parent), BaseWonkoEntity(context), m_uid(uid)
 {
 	setObjectName("Wonko version list: " + uid);
 }

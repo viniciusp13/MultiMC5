@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "WonkoUtil.h"
+#include "Wonko.h"
 
 #include <QUrl>
 #include <QDir>

@@ -15,14 +15,15 @@
 
 #pragma once
 
+#include "wonko/Wonko.h"
 #include "WonkoFormat.h"
 
 class WonkoFormatV1 : public WonkoFormat
 {
 public:
-	BaseWonkoEntity::Ptr parseIndexInternal(const QJsonObject &obj) const override;
-	BaseWonkoEntity::Ptr parseVersionInternal(const QJsonObject &obj) const override;
-	BaseWonkoEntity::Ptr parseVersionListInternal(const QJsonObject &obj) const override;
+	BaseWonkoEntity::Ptr parseIndexInternal(Wonko * context, const QJsonObject &obj) const override;
+	BaseWonkoEntity::Ptr parseVersionInternal(Wonko * context, const QJsonObject &obj) const override;
+	BaseWonkoEntity::Ptr parseVersionListInternal(Wonko * context, const QJsonObject &obj) const override;
 
 	QJsonObject serializeIndexInternal(const WonkoIndex *ptr) const override;
 	QJsonObject serializeVersionInternal(const WonkoVersion *ptr) const override;

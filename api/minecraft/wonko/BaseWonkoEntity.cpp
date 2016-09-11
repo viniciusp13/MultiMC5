@@ -16,7 +16,12 @@
 #include "BaseWonkoEntity.h"
 
 #include "Json.h"
-#include "WonkoUtil.h"
+#include "Wonko.h"
+
+BaseWonkoEntity::BaseWonkoEntity(Wonko* context)
+{
+	m_context = context;
+}
 
 BaseWonkoEntity::~BaseWonkoEntity()
 {
@@ -24,7 +29,8 @@ BaseWonkoEntity::~BaseWonkoEntity()
 
 void BaseWonkoEntity::store() const
 {
-	Json::write(serialized(), Wonko::localWonkoDir().absoluteFilePath(localFilename()));
+	QDir wonkoDir(m_context->localWonkoDir());
+	Json::write(serialized(), wonkoDir.absoluteFilePath(localFilename()));
 }
 
 void BaseWonkoEntity::notifyLocalLoadComplete()

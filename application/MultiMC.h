@@ -25,6 +25,7 @@ class UpdateChecker;
 class BaseProfilerFactory;
 class BaseDetachedToolFactory;
 class TranslationDownloader;
+class Wonko;
 
 #if defined(MMC)
 #undef MMC
@@ -116,6 +117,11 @@ public:
 		return m_tools;
 	}
 
+	std::shared_ptr<Wonko> wonko()
+	{
+		return m_wonko;
+	}
+
 	// APPLICATION ONLY
 	QString getFinishCmd();
 	void installUpdates(const QString updateFilesDir, GoUpdate::OperationList operations);
@@ -169,6 +175,7 @@ private:
 	std::shared_ptr<JavaInstallList> m_javalist;
 	std::shared_ptr<TranslationDownloader> m_translationChecker;
 	std::shared_ptr<GenericPageProvider> m_globalSettingsProvider;
+	std::shared_ptr<Wonko> m_wonko;
 
 	QMap<QString, std::shared_ptr<BaseProfilerFactory>> m_profilers;
 	QMap<QString, std::shared_ptr<BaseDetachedToolFactory>> m_tools;

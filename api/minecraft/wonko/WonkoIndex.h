@@ -29,8 +29,8 @@ class MULTIMC_MINECRAFT_EXPORT WonkoIndex : public QAbstractListModel, public Ba
 {
 	Q_OBJECT
 public:
-	explicit WonkoIndex(QObject *parent = nullptr);
-	explicit WonkoIndex(const QVector<WonkoVersionListPtr> &lists, QObject *parent = nullptr);
+	explicit WonkoIndex(Wonko * context, QObject *parent = nullptr);
+	explicit WonkoIndex(Wonko * context, const QVector<WonkoVersionListPtr> &lists, QObject *parent = nullptr);
 
 	enum
 	{

@@ -20,12 +20,12 @@
 #include "tasks/BaseWonkoEntityRemoteLoadTask.h"
 #include "format/WonkoFormat.h"
 
-WonkoIndex::WonkoIndex(QObject *parent)
-	: QAbstractListModel(parent)
+WonkoIndex::WonkoIndex(Wonko * context, QObject *parent)
+	: QAbstractListModel(parent), BaseWonkoEntity(context)
 {
 }
-WonkoIndex::WonkoIndex(const QVector<WonkoVersionListPtr> &lists, QObject *parent)
-	: QAbstractListModel(parent), m_lists(lists)
+WonkoIndex::WonkoIndex(Wonko * context, const QVector<WonkoVersionListPtr> &lists, QObject *parent)
+	: QAbstractListModel(parent), BaseWonkoEntity(context), m_lists(lists)
 {
 	for (int i = 0; i < m_lists.size(); ++i)
 	{
@@ -100,7 +100,7 @@ WonkoVersionListPtr WonkoIndex::getList(const QString &uid) const
 }
 WonkoVersionListPtr WonkoIndex::getListGuaranteed(const QString &uid) const
 {
-	return m_uids.value(uid, std::make_shared<WonkoVersionList>(uid));
+	return m_uids.value(uid, std::make_shared<WonkoVersionList>(m_context, uid));
 }
 
 void WonkoIndex::merge(const Ptr &other)

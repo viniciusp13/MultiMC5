@@ -39,7 +39,7 @@ class MULTIMC_MINECRAFT_EXPORT WonkoVersion : public QObject, public BaseVersion
 	Q_PROPERTY(QDateTime time READ time NOTIFY timeChanged)
 	Q_PROPERTY(QVector<WonkoReference> requires READ requires NOTIFY requiresChanged)
 public:
-	explicit WonkoVersion(const QString &uid, const QString &version);
+	explicit WonkoVersion(Wonko * context, const QString &uid, const QString &version);
 
 	QString descriptor() override;
 	QString name() override;

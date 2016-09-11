@@ -17,6 +17,8 @@
 
 #include "tasks/Task.h"
 #include <memory>
+#include "wonko/Wonko.h"
+#include "wonko/BaseWonkoEntity.h"
 
 class BaseWonkoEntity;
 class WonkoIndex;
@@ -35,6 +37,10 @@ protected:
 	virtual void parse(const QJsonObject &obj) const = 0;
 
 	BaseWonkoEntity *entity() const { return m_entity; }
+	Wonko *context() const
+	{
+		return m_entity->context();
+	}
 
 private:
 	void executeTask() override;

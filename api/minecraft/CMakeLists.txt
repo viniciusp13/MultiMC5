@@ -180,8 +180,8 @@ set(WONKO_SOURCES
 	wonko/WonkoVersion.h
 	wonko/WonkoIndex.cpp
 	wonko/WonkoIndex.h
-	wonko/WonkoUtil.cpp
-	wonko/WonkoUtil.h
+	wonko/Wonko.cpp
+	wonko/Wonko.h
 	wonko/WonkoReference.cpp
 	wonko/WonkoReference.h
 )

@@ -18,7 +18,7 @@
 #include <QFile>
 
 #include "wonko/format/WonkoFormat.h"
-#include "wonko/WonkoUtil.h"
+#include "wonko/Wonko.h"
 #include "wonko/WonkoIndex.h"
 #include "wonko/WonkoVersion.h"
 #include "wonko/WonkoVersionList.h"
@@ -32,7 +32,8 @@ BaseWonkoEntityLocalLoadTask::BaseWonkoEntityLocalLoadTask(BaseWonkoEntity *enti
 
 void BaseWonkoEntityLocalLoadTask::executeTask()
 {
-	const QString fname = Wonko::localWonkoDir().absoluteFilePath(filename());
+	QDir storageFolder(m_entity->context()->localWonkoDir());
+	const QString fname =  storageFolder.absoluteFilePath(filename());
 	if (!QFile::exists(fname))
 	{
 		emitFailed(tr("File doesn't exist"));
@@ -69,7 +70,7 @@ QString WonkoIndexLocalLoadTask::name() const
 }
 void WonkoIndexLocalLoadTask::parse(const QJsonObject &obj) const
 {
-	WonkoFormat::parseIndex(obj, dynamic_cast<WonkoIndex *>(entity()));
+	WonkoFormat::parseIndex(context(), obj, dynamic_cast<WonkoIndex *>(entity()));
 }
 
 //      WONKO VERSION LIST      //
@@ -87,7 +88,7 @@ QString WonkoVersionListLocalLoadTask::name() const
 }
 void WonkoVersionListLocalLoadTask::parse(const QJsonObject &obj) const
 {
-	WonkoFormat::parseVersionList(obj, list());
+	WonkoFormat::parseVersionList(context(), obj, list());
 }
 WonkoVersionList *WonkoVersionListLocalLoadTask::list() const
 {
@@ -109,7 +110,7 @@ QString WonkoVersionLocalLoadTask::name() const
 }
 void WonkoVersionLocalLoadTask::parse(const QJsonObject &obj) const
 {
-	WonkoFormat::parseVersion(obj, version());
+	WonkoFormat::parseVersion(context(), obj, version());
 }
 WonkoVersion *WonkoVersionLocalLoadTask::version() const
 {

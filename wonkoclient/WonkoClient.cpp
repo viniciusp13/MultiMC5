@@ -4,9 +4,9 @@
 
 #include <MinecraftVersionList.h>
 #include <Env.h>
-#include <minecraft/liteloader/LiteLoaderVersionList.h>
-#include <minecraft/forge/ForgeVersionList.h>
-#include <minecraft/legacy/LwjglVersionList.h>
+#include <liteloader/LiteLoaderVersionList.h>
+#include <forge/ForgeVersionList.h>
+#include <legacy/LwjglVersionList.h>
 #include <java/JavaInstallList.h>
 #include <settings/INISettingsObject.h>
 #include "WonkoClient.h"

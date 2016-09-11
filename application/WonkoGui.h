@@ -9,7 +9,7 @@ using WonkoIndexPtr = std::shared_ptr<class WonkoIndex>;
 using WonkoVersionListPtr = std::shared_ptr<class WonkoVersionList>;
 using WonkoVersionPtr = std::shared_ptr<class WonkoVersion>;
 
-namespace Wonko
+namespace WonkoGui
 {
 enum UpdateType
 {

@@ -14,7 +14,7 @@ void SkinUploadDialog::on_buttonBox_rejected()
 
 void SkinUploadDialog::on_buttonBox_accepted()
 {
-	AuthSessionPtr session = std::make_shared<AuthSession>();
+	Minecraft::AuthSessionPtr session = std::make_shared<Minecraft::AuthSession>();
 	auto login = m_acct->login(session);
 	ProgressDialog prog(this);
 	if (prog.execWithTask((Task*)login.get()) != QDialog::Accepted)

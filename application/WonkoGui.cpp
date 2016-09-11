@@ -1,34 +1,37 @@
 #include "WonkoGui.h"
 
 #include "dialogs/ProgressDialog.h"
+#include "wonko/Wonko.h"
 #include "wonko/WonkoIndex.h"
 #include "wonko/WonkoVersionList.h"
 #include "wonko/WonkoVersion.h"
-#include "Env.h"
+#include "MultiMC.h"
 
-WonkoIndexPtr Wonko::ensureIndexLoaded(QWidget *parent)
+WonkoIndexPtr WonkoGui::ensureIndexLoaded(QWidget *parent)
 {
-	if (!ENV.wonkoIndex()->isLocalLoaded())
+	auto index = MMC->wonko()->wonkoIndex();
+	if (!index->isLocalLoaded())
 	{
-		ProgressDialog(parent).execWithTask(ENV.wonkoIndex()->localUpdateTask());
-		if (!ENV.wonkoIndex()->isRemoteLoaded() && ENV.wonkoIndex()->lists().size() == 0)
+		ProgressDialog(parent).execWithTask(index->localUpdateTask());
+		if (!index->isRemoteLoaded() && index->lists().size() == 0)
 		{
-			ProgressDialog(parent).execWithTask(ENV.wonkoIndex()->remoteUpdateTask());
+			ProgressDialog(parent).execWithTask(index->remoteUpdateTask());
 		}
 	}
-	return ENV.wonkoIndex();
+	return index;
 }
 
-WonkoVersionListPtr Wonko::ensureVersionListExists(const QString &uid, QWidget *parent)
+WonkoVersionListPtr WonkoGui::ensureVersionListExists(const QString &uid, QWidget *parent)
 {
+	auto index = MMC->wonko()->wonkoIndex();
 	ensureIndexLoaded(parent);
-	if (!ENV.wonkoIndex()->isRemoteLoaded() && !ENV.wonkoIndex()->hasUid(uid))
+	if (!index->isRemoteLoaded() && !index->hasUid(uid))
 	{
-		ProgressDialog(parent).execWithTask(ENV.wonkoIndex()->remoteUpdateTask());
+		ProgressDialog(parent).execWithTask(index->remoteUpdateTask());
 	}
-	return ENV.wonkoIndex()->getList(uid);
+	return index->getList(uid);
 }
-WonkoVersionListPtr Wonko::ensureVersionListLoaded(const QString &uid, QWidget *parent)
+WonkoVersionListPtr WonkoGui::ensureVersionListLoaded(const QString &uid, QWidget *parent)
 {
 	WonkoVersionListPtr list = ensureVersionListExists(uid, parent);
 	if (!list)
@@ -46,7 +49,7 @@ WonkoVersionListPtr Wonko::ensureVersionListLoaded(const QString &uid, QWidget *
 	return list->isComplete() ? list : nullptr;
 }
 
-WonkoVersionPtr Wonko::ensureVersionExists(const QString &uid, const QString &version, QWidget *parent)
+WonkoVersionPtr WonkoGui::ensureVersionExists(const QString &uid, const QString &version, QWidget *parent)
 {
 	WonkoVersionListPtr list = ensureVersionListLoaded(uid, parent);
 	if (!list)
@@ -55,7 +58,7 @@ WonkoVersionPtr Wonko::ensureVersionExists(const QString &uid, const QString &ve
 	}
 	return list->getVersion(version);
 }
-WonkoVersionPtr Wonko::ensureVersionLoaded(const QString &uid, const QString &version, QWidget *parent, const UpdateType update)
+WonkoVersionPtr WonkoGui::ensureVersionLoaded(const QString &uid, const QString &version, QWidget *parent, const UpdateType update)
 {
 	WonkoVersionPtr vptr = ensureVersionExists(uid, version, parent);
 	if (!vptr)

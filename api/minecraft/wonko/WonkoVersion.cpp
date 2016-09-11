@@ -21,8 +21,8 @@
 #include "tasks/BaseWonkoEntityRemoteLoadTask.h"
 #include "format/WonkoFormat.h"
 
-WonkoVersion::WonkoVersion(const QString &uid, const QString &version)
-	: BaseVersion(), m_uid(uid), m_version(version)
+WonkoVersion::WonkoVersion(Wonko * context, const QString &uid, const QString &version)
+	: BaseVersion(), BaseWonkoEntity(context), m_uid(uid), m_version(version)
 {
 }
 

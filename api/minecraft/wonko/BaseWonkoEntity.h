@@ -21,10 +21,12 @@
 #include "multimc_minecraft_export.h"
 
 class Task;
+class Wonko;
 
 class MULTIMC_MINECRAFT_EXPORT BaseWonkoEntity
 {
 public:
+	BaseWonkoEntity(Wonko * context);
 	virtual ~BaseWonkoEntity();
 
 	using Ptr = std::shared_ptr<BaseWonkoEntity>;
@@ -44,6 +46,14 @@ public:
 
 	void notifyLocalLoadComplete();
 	void notifyRemoteLoadComplete();
+
+	Wonko * context() const
+	{
+		return m_context;
+	}
+
+protected:
+	Wonko * m_context;
 
 private:
 	bool m_localLoaded = false;

@@ -23,6 +23,7 @@
 #include "dialogs/ProgressDialog.h"
 #include "VersionProxyModel.h"
 
+#include "wonko/Wonko.h"
 #include "wonko/WonkoIndex.h"
 #include "wonko/WonkoVersionList.h"
 #include "wonko/WonkoVersion.h"
@@ -31,10 +32,11 @@
 
 static QString formatRequires(const WonkoVersionPtr &version)
 {
+	auto index = MMC->wonko()->wonkoIndex();
 	QStringList lines;
 	for (const WonkoReference &ref : version->requires())
 	{
-		const QString readable = ENV.wonkoIndex()->hasUid(ref.uid()) ? ENV.wonkoIndex()->getList(ref.uid())->humanReadable() : ref.uid();
+		const QString readable = index->hasUid(ref.uid()) ? index->getList(ref.uid())->humanReadable() : ref.uid();
 		if (ref.version().isEmpty())
 		{
 			lines.append(readable);
@@ -51,6 +53,7 @@ WonkoPage::WonkoPage(QWidget *parent) :
 	QWidget(parent),
 	ui(new Ui::WonkoPage)
 {
+	auto index = MMC->wonko()->wonkoIndex();
 	ui->setupUi(this);
 	ui->tabWidget->tabBar()->hide();
 
@@ -61,7 +64,7 @@ WonkoPage::WonkoPage(QWidget *parent) :
 	m_fileProxy->setFilterRole(Qt::DisplayRole);
 	m_fileProxy->setFilterKeyColumn(0);
 	m_fileProxy->sort(0);
-	m_fileProxy->setSourceModel(ENV.wonkoIndex().get());
+	m_fileProxy->setSourceModel(index.get());
 	ui->indexView->setModel(m_fileProxy);
 
 	m_filterProxy = new QSortFilterProxyModel(this);
@@ -95,7 +98,8 @@ QIcon WonkoPage::icon() const
 
 void WonkoPage::on_refreshIndexBtn_clicked()
 {
-	ProgressDialog(this).execWithTask(ENV.wonkoIndex()->remoteUpdateTask());
+	auto index = MMC->wonko()->wonkoIndex();
+	ProgressDialog(this).execWithTask(index->remoteUpdateTask());
 }
 void WonkoPage::on_refreshFileBtn_clicked()
 {
@@ -225,14 +229,16 @@ void WonkoPage::updateVersion()
 
 void WonkoPage::opened()
 {
-	if (!ENV.wonkoIndex()->isLocalLoaded())
+	auto index = MMC->wonko()->wonkoIndex();
+	if (!index->isLocalLoaded())
 	{
-		std::unique_ptr<Task> task = ENV.wonkoIndex()->localUpdateTask();
+		std::unique_ptr<Task> task = index->localUpdateTask();
 		connect(task.get(), &Task::finished, this, [this]()
 		{
-			if (!ENV.wonkoIndex()->isRemoteLoaded())
+			auto index = MMC->wonko()->wonkoIndex();
+			if (!index->isRemoteLoaded())
 			{
-				ProgressDialog(this).execWithTask(ENV.wonkoIndex()->remoteUpdateTask());
+				ProgressDialog(this).execWithTask(index->remoteUpdateTask());
 			}
 		});
 		ProgressDialog(this).execWithTask(task);
