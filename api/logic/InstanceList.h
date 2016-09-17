@@ -30,14 +30,9 @@ class QDir;
 class MULTIMC_LOGIC_EXPORT InstanceList : public QAbstractListModel
 {
 	Q_OBJECT
-private:
-	void loadGroupList(QMap<QString, QString> &groupList);
-
-public slots:
-	void saveGroupList();
 
 public:
-	explicit InstanceList(SettingsObjectPtr globalSettings, const QString &instDir, QObject *parent = 0);
+	explicit InstanceList(SettingsObjectPtr globalSettings, QObject *parent = 0);
 	virtual ~InstanceList();
 
 public:
@@ -79,11 +74,6 @@ public:
 		CantCreateDir
 	};
 
-	QString instDir() const
-	{
-		return m_instDir;
-	}
-
 	/*!
 	 * \brief Get the instance at index
 	 */
@@ -103,10 +93,12 @@ public:
 	;
 
 	/// Clear all instances. Triggers notifications.
-	void clear();
+	// void clear();
 
 	/// Add an instance. Triggers notifications, returns the new index
 	int add(InstancePtr t);
+
+	bool addInstanceProvider(BaseInstanceProvider * provider);
 
 	/// Get an instance by ID
 	InstancePtr getInstanceById(QString id) const;
@@ -144,16 +136,15 @@ public:
 	InstCreateError copyInstance(InstancePtr &newInstance, InstancePtr &oldInstance,
 								 const QString &instDir, bool copySaves);
 
-signals:
-	void dataIsInvalid();
-
-public slots:
-	void on_InstFolderChanged(const Setting &setting, QVariant value);
-
 	/*!
 	 * \brief Loads the instance list. Triggers notifications.
 	 */
 	InstListError loadList();
+
+	void onExit();
+
+signals:
+	void dataIsInvalid();
 
 private slots:
 	void propertiesChanged(BaseInstance *inst);
@@ -167,7 +158,6 @@ public:
 	static bool continueProcessInstance(InstancePtr instPtr, const int error, const QDir &dir, QMap<QString, QString> &groupMap);
 
 protected:
-	QString m_instDir;
 	QList<std::shared_ptr<BaseInstanceProvider>> m_instanceProviders;
 	QList<InstancePtr> m_instances;
 	QSet<QString> m_groups;

@@ -36,7 +36,8 @@ void WonkoClient::registerLists() {
 
 WonkoClient::WonkoClient() {
     m_settings.reset(new INISettingsObject("multimc.cfg", this));
-    m_instanceList.reset(new InstanceList(m_settings, ".", this));
+    // FIXME: missing any instance providers
+    m_instanceList.reset(new InstanceList(m_settings, this));
 }
 
 void WonkoClient::runTask(Task *pTask) {

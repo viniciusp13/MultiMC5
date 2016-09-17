@@ -41,20 +41,19 @@
 #include "FileSystem.h"
 #include "pathmatcher/RegexpMatcher.h"
 
-const static int GROUP_FILE_FORMAT_VERSION = 1;
-
-InstanceList::InstanceList(SettingsObjectPtr globalSettings, const QString &instDir, QObject *parent)
-	: QAbstractListModel(parent), m_instDir(instDir)
+InstanceList::InstanceList(SettingsObjectPtr globalSettings, QObject *parent)
+	: QAbstractListModel(parent)
 {
 	m_globalSettings = globalSettings;
-	if (!QDir::current().exists(m_instDir))
-	{
-		QDir::current().mkpath(m_instDir);
-	}
 }
 
 InstanceList::~InstanceList()
 {
+}
+
+void InstanceList::onExit()
+{
+	// TODO: notify instance providers about exit (so groups can be saved, etc.)
 }
 
 int InstanceList::rowCount(const QModelIndex &parent) const
@@ -125,7 +124,7 @@ Qt::ItemFlags InstanceList::flags(const QModelIndex &index) const
 void InstanceList::groupChanged()
 {
 	// save the groups. save all of them.
-	saveGroupList();
+	// saveGroupList();
 }
 
 QStringList InstanceList::getGroups()
@@ -145,158 +144,11 @@ void InstanceList::deleteGroup(const QString& name)
 	}
 }
 
-void InstanceList::saveGroupList()
-{
-	QString groupFileName = m_instDir + "/instgroups.json";
-	QMap<QString, QSet<QString>> groupMap;
-	for (auto instance : m_instances)
-	{
-		QString id = instance->id();
-		QString group = instance->group();
-		if (group.isEmpty())
-			continue;
-
-		// keep a list/set of groups for choosing
-		m_groups.insert(group);
-
-		if (!groupMap.count(group))
-		{
-			QSet<QString> set;
-			set.insert(id);
-			groupMap[group] = set;
-		}
-		else
-		{
-			QSet<QString> &set = groupMap[group];
-			set.insert(id);
-		}
-	}
-	QJsonObject toplevel;
-	toplevel.insert("formatVersion", QJsonValue(QString("1")));
-	QJsonObject groupsArr;
-	for (auto iter = groupMap.begin(); iter != groupMap.end(); iter++)
-	{
-		auto list = iter.value();
-		auto name = iter.key();
-		QJsonObject groupObj;
-		QJsonArray instanceArr;
-		groupObj.insert("hidden", QJsonValue(QString("false")));
-		for (auto item : list)
-		{
-			instanceArr.append(QJsonValue(item));
-		}
-		groupObj.insert("instances", instanceArr);
-		groupsArr.insert(name, groupObj);
-	}
-	toplevel.insert("groups", groupsArr);
-	QJsonDocument doc(toplevel);
-	try
-	{
-		FS::write(groupFileName, doc.toJson());
-	}
-	catch(FS::FileSystemException & e)
-	{
-		qCritical() << "Failed to write instance group file :" << e.cause();
-	}
-}
-
-void InstanceList::loadGroupList(QMap<QString, QString> &groupMap)
-{
-	QString groupFileName = m_instDir + "/instgroups.json";
-
-	// if there's no group file, fail
-	if (!QFileInfo(groupFileName).exists())
-		return;
-
-	QByteArray jsonData;
-	try
-	{
-		jsonData = FS::read(groupFileName);
-	}
-	catch (FS::FileSystemException & e)
-	{
-		qCritical() << "Failed to read instance group file :" << e.cause();
-		return;
-	}
-
-	QJsonParseError error;
-	QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &error);
-
-	// if the json was bad, fail
-	if (error.error != QJsonParseError::NoError)
-	{
-		qCritical() << QString("Failed to parse instance group file: %1 at offset %2")
-							.arg(error.errorString(), QString::number(error.offset))
-							.toUtf8();
-		return;
-	}
-
-	// if the root of the json wasn't an object, fail
-	if (!jsonDoc.isObject())
-	{
-		qWarning() << "Invalid group file. Root entry should be an object.";
-		return;
-	}
-
-	QJsonObject rootObj = jsonDoc.object();
-
-	// Make sure the format version matches, otherwise fail.
-	if (rootObj.value("formatVersion").toVariant().toInt() != GROUP_FILE_FORMAT_VERSION)
-		return;
-
-	// Get the groups. if it's not an object, fail
-	if (!rootObj.value("groups").isObject())
-	{
-		qWarning() << "Invalid group list JSON: 'groups' should be an object.";
-		return;
-	}
-
-	// Iterate through all the groups.
-	QJsonObject groupMapping = rootObj.value("groups").toObject();
-	for (QJsonObject::iterator iter = groupMapping.begin(); iter != groupMapping.end(); iter++)
-	{
-		QString groupName = iter.key();
-
-		// If not an object, complain and skip to the next one.
-		if (!iter.value().isObject())
-		{
-			qWarning() << QString("Group '%1' in the group list should "
-								   "be an object.")
-							   .arg(groupName)
-							   .toUtf8();
-			continue;
-		}
-
-		QJsonObject groupObj = iter.value().toObject();
-		if (!groupObj.value("instances").isArray())
-		{
-			qWarning() << QString("Group '%1' in the group list is invalid. "
-								   "It should contain an array "
-								   "called 'instances'.")
-							   .arg(groupName)
-							   .toUtf8();
-			continue;
-		}
-
-		// keep a list/set of groups for choosing
-		m_groups.insert(groupName);
-
-		// Iterate through the list of instances in the group.
-		QJsonArray instancesArray = groupObj.value("instances").toArray();
-
-		for (QJsonArray::iterator iter2 = instancesArray.begin(); iter2 != instancesArray.end();
-			 iter2++)
-		{
-			groupMap[(*iter2).toString()] = groupName;
-		}
-	}
-}
-
 InstanceList::InstListError InstanceList::loadList()
 {
 	// load the instance groups
 	QMap<QString, QString> groupMap;
-	loadGroupList(groupMap);
+	// loadGroupList(groupMap);
 
 	QList<InstancePtr> tempList;
 	for(auto & provider: m_instanceProviders)
@@ -321,6 +173,7 @@ InstanceList::InstListError InstanceList::loadList()
 }
 
 /// Clear all instances. Triggers notifications.
+/*
 void InstanceList::clear()
 {
 	beginResetModel();
@@ -329,12 +182,7 @@ void InstanceList::clear()
 	endResetModel();
 	emit dataIsInvalid();
 }
-
-void InstanceList::on_InstFolderChanged(const Setting &setting, QVariant value)
-{
-	m_instDir = value.toString();
-	loadList();
-}
+*/
 
 /// Add an instance. Triggers notifications, returns the new index
 int InstanceList::add(InstancePtr t)
@@ -348,6 +196,12 @@ int InstanceList::add(InstancePtr t)
 	connect(t.get(), SIGNAL(nuked(BaseInstance *)), this, SLOT(instanceNuked(BaseInstance *)));
 	endInsertRows();
 	return count() - 1;
+}
+
+bool InstanceList::addInstanceProvider(BaseInstanceProvider* provider)
+{
+	m_instanceProviders.append(std::shared_ptr<BaseInstanceProvider>(provider));
+	return true;
 }
 
 InstancePtr InstanceList::getInstanceById(QString instId) const

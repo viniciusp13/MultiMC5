@@ -1133,7 +1133,8 @@ InstancePtr MainWindow::instanceFromZipPack(QString instName, QString instGroup,
 InstancePtr MainWindow::instanceFromVersion(QString instName, QString instGroup, QString instIcon, BaseVersionPtr version)
 {
 	InstancePtr newInstance;
-
+	// FIXME: needs to work with instance providers
+	/*
 	QString instancesDir = MMC->settings()->get("InstanceDir").toString();
 	QString instDirName = FS::DirNameFromString(instName, instancesDir);
 	QString instDir = FS::PathCombine(instancesDir, instDirName);
@@ -1171,6 +1172,7 @@ InstancePtr MainWindow::instanceFromVersion(QString instName, QString instGroup,
 	MMC->instances()->add(InstancePtr(newInstance));
 	MMC->instances()->saveGroupList();
 	finalizeInstance(newInstance);
+	*/
 	return newInstance;
 }
 

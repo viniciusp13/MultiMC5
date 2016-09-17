@@ -1,4 +1,5 @@
 #include "MultiMC.h"
+#include <FolderInstanceProvider.h>
 #include "BuildConfig.h"
 #include "pages/BasePageProvider.h"
 #include "pages/global/MultiMCPage.h"
@@ -252,11 +253,14 @@ MultiMC::MultiMC(int &argc, char **argv, bool test_mode) : QApplication(argc, ar
 		qWarning()
 			<< "Your instance path contains \'!\' and this is known to cause java problems";
 	}
-	m_instances.reset(new InstanceList(m_settings, InstDirSetting->get().toString(), this));
+	m_instances.reset(new InstanceList(m_settings, this));
+	auto mainFolderProvider = new FolderInstanceProvider(InstDirSetting->get().toString());
+	connect(InstDirSetting.get(), SIGNAL(SettingChanged(const Setting &, QVariant)),
+			mainFolderProvider, SLOT(on_InstFolderChanged(const Setting &, QVariant)));
+
+	m_instances->addInstanceProvider(mainFolderProvider);
 	qDebug() << "Loading Instances...";
 	m_instances->loadList();
-	connect(InstDirSetting.get(), SIGNAL(SettingChanged(const Setting &, QVariant)),
-			m_instances.get(), SLOT(on_InstFolderChanged(const Setting &, QVariant)));
 
 	// and accounts
 	m_accounts.reset(new MojangAccountList(this));
@@ -955,7 +959,7 @@ void MultiMC::onExit()
 {
 	if(m_instances)
 	{
-		m_instances->saveGroupList();
+		m_instances->onExit();
 	}
 	ENV.destroy();
 	if(logFile)

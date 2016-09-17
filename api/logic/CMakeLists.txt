@@ -8,6 +8,8 @@ set(CORE_SOURCES
 	BaseVersionList.cpp
 	InstanceList.h
 	InstanceList.cpp
+	FolderInstanceProvider.h
+	FolderInstanceProvider.cpp
 	BaseVersion.h
 	BaseInstance.h
 	BaseInstance.cpp
