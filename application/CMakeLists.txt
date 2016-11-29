@@ -149,6 +149,8 @@ SET(MULTIMC_SOURCES
 	pages/ResourcePackPage.h
 	pages/ModFolderPage.cpp
 	pages/ModFolderPage.h
+	pages/CoreModFolderPage.cpp
+	pages/CoreModFolderPage.h
 	pages/NotesPage.cpp
 	pages/NotesPage.h
 	pages/LogPage.cpp

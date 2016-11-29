@@ -74,14 +74,6 @@ void ModFolderPage::on_filterTextChanged(const QString& newContents)
 	m_filterModel->setFilterFixedString(m_viewFilter);
 }
 
-
-CoreModFolderPage::CoreModFolderPage(BaseInstance *inst, std::shared_ptr<ModList> mods,
-									 QString id, QString iconName, QString displayName,
-									 QString helpPage, QWidget *parent)
-	: ModFolderPage(inst, mods, id, iconName, displayName, helpPage, parent)
-{
-}
-
 ModFolderPage::~ModFolderPage()
 {
 	m_mods->stopWatching();
@@ -93,32 +85,6 @@ bool ModFolderPage::shouldDisplay() const
 	if (m_inst)
 		return !m_inst->isRunning();
 	return true;
-}
-
-bool CoreModFolderPage::shouldDisplay() const
-{
-	if (ModFolderPage::shouldDisplay())
-	{
-		auto inst = dynamic_cast<OneSixInstance *>(m_inst);
-		if (!inst)
-			return true;
-		auto version = inst->getMinecraftProfile();
-		if (!version)
-			return true;
-		if(!version->versionPatch("net.minecraftforge"))
-		{
-			return false;
-		}
-		if(!version->versionPatch("net.minecraft"))
-		{
-			return false;
-		}
-		if(version->versionPatch("net.minecraft")->getReleaseDateTime() < g_VersionFilterData.legacyCutoffDate)
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 bool ModFolderPage::modListFilter(QKeyEvent *keyEvent)

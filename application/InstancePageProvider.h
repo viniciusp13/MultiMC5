@@ -6,6 +6,7 @@
 #include "pages/LogPage.h"
 #include "pages/VersionPage.h"
 #include "pages/ModFolderPage.h"
+#include "pages/CoreModFolderPage.h"
 #include "pages/ResourcePackPage.h"
 #include "pages/TexturePackPage.h"
 #include "pages/NotesPage.h"
